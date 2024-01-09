@@ -13,7 +13,11 @@ import SwiftParser
 struct StabilityAssuranceTool: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "A stability assurance tool to provide a quality check for Swift projects",
-        subcommands: [ShowCollectedData.self, TestCommand.self],
+        subcommands: [
+            CollectedData.self,
+            StabilityAssuranceMark.self,
+            TestCommand.self
+        ],
         defaultSubcommand: TestCommand.self
     )
     
@@ -24,6 +28,45 @@ struct StabilityAssuranceTool: ParsableCommand {
         analyzer.walk(sourceFile)
         
         return analyzer.classStack
+    }
+    
+    // MARK: isDerectory inspection function
+    // Function isDirectory inspects whether the path provided is a directory pathname or not
+    private func isDirectory(at path: String) -> Bool {
+        var isDirectory: ObjCBool = false
+        return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+    
+    // MARK: Read directory at @directoryPath
+    private func readDirectory(at directoryPath: String) throws -> [ClassInfo] {
+        guard let enumerator = FileManager.default.enumerator(atPath: directoryPath) else {
+            print("Failed to enumerate the directory.")
+            return []
+        }
+        
+        var visitorClasses: [ClassInfo] = []
+        
+        for case let file as String in enumerator {
+            if file.hasSuffix(".swift") {
+                let filePath = (directoryPath as NSString).appendingPathComponent(file)
+                let retrievedClasses = try readFile(at: filePath)
+                
+                visitorClasses.append(contentsOf: retrievedClasses)
+            }
+        }
+        
+        return visitorClasses
+    }
+    
+    // MARK: Read file at @filePath
+    private func readFile(at filePath: String) throws -> [ClassInfo] {
+        guard let file = try? String(contentsOfFile: filePath) else {
+            print("File isn't readable at: \(filePath)")
+            return []
+        }
+        
+        let visitorClasses = countVisitClasses(in: file)
+        return visitorClasses
     }
 }
 
@@ -54,7 +97,7 @@ extension StabilityAssuranceTool {
 
 // MARK: Show Data Collected Command
 extension StabilityAssuranceTool {
-    struct ShowCollectedData: ParsableCommand {
+    struct CollectedData: ParsableCommand {
         static var configuration = CommandConfiguration(
             commandName: "showData",
             abstract: "Show collected data for the filepath."
@@ -64,43 +107,17 @@ extension StabilityAssuranceTool {
         
         mutating func run() throws {
             let path = options.filepath
+            print("Collected data for \(path)")
             
-            if isDirectory(at: path) {
-                try readDirectory(at: path)
+            var visitorClasses: [ClassInfo] = []
+            
+            if StabilityAssuranceTool().isDirectory(at: path) {
+                visitorClasses = try StabilityAssuranceTool().readDirectory(at: path)
             } else {
-                try readFile(at: path)
-            }
-        }
-        
-        private func isDirectory(at path: String) -> Bool {
-            var isDirectory: ObjCBool = false
-            return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
-        }
-        
-        private func readDirectory(at directoryPath: String) throws {
-            guard let enumerator = FileManager.default.enumerator(atPath: directoryPath) else {
-                print("Failed to enumerate the directory.")
-                return
+                visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-//            let foundFilesCount = enumerator.allObjects.count
-//            print("Files found: \(foundFilesCount)")
-            
-            for case let file as String in enumerator {
-                if file.hasSuffix(".swift") {
-                    let filePath = (directoryPath as NSString).appendingPathComponent(file)
-                    try readFile(at: filePath)
-                }
-            }
-        }
-        
-        private func readFile(at filePath: String) throws {
-            guard let file = try? String(contentsOfFile: filePath) else {
-                print("File isn't readable at: \(filePath)")
-                return
-            }
-            
-            let visitorClasses = StabilityAssuranceTool().countVisitClasses(in: file)
+            print("Found classes count: \(visitorClasses.count)")
             
             for visitorViewedClass in visitorClasses {
                 let result = visitorViewedClass.description
@@ -110,3 +127,17 @@ extension StabilityAssuranceTool {
     }
 }
 
+// MARK: Evaluate Product Command
+extension StabilityAssuranceTool {
+    struct StabilityAssuranceMark: ParsableCommand {
+        static var configuration = CommandConfiguration(
+            commandName: "evaluate",
+            abstract: "Evaluate stbility of the source code for the filepath.",
+            subcommands: [
+                RFC.self,
+                WMC.self,
+                NOC.self
+            ]
+        )
+    }
+} 

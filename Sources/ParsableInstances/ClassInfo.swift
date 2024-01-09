@@ -12,6 +12,8 @@ class ClassInfo {
     var functionCount = 0
     var functions: [FunctionInfo] = []
     var variables: [VariableInfo] = []
+    var classParent: String?
+    var numberOfChildren: Int = 0
 
     init(name: String) {
         self.name = name
@@ -26,13 +28,25 @@ extension ClassInfo {
         xmlString += "  <name>\(self.name)</name>\n"
         xmlString += "  <variableCount>\(self.variables.count)</variableCount>\n"
         xmlString += "  <functionCount>\(self.functionCount)</functionCount>\n"
+        xmlString += "  <classParentName>\(self.classParent ?? "NA")</classParentName>\n"
+        xmlString += "  <numberOfChildren>\(self.numberOfChildren)</numberOfChildren>\n"
         
         for function in self.functions {
+            
+            let calledFunctions = function.calledFunctions
+            
             xmlString += "  <function>\n"
             xmlString += "      <name>\(function.name)</name>\n"
             xmlString += "      <signature>\(function.signature)</signature>\n"
             xmlString += "      <scope>\n\(function.scope)\n      </scope>\n"
             xmlString += "      <functionCalls>\(function.functionCalls)</functionCalls>\n"
+            xmlString += "      <functionsCalled>\n"
+            
+            for calledFunction in calledFunctions {
+                xmlString += "          <functionName>\(calledFunction)</functionName>\n"
+            }
+            
+            xmlString += "      </functionCalls>\n"
             xmlString += "  </function>\n"
         }
         

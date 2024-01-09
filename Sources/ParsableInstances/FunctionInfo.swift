@@ -12,6 +12,8 @@ class FunctionInfo {
     var signature: String
     var scope: String
     var functionCalls: Int
+    var calledFunctions: [String] = []
+    
     
     init(name: String, signature: String, scope: String, functionCalls: Int) {
         self.name = name
