@@ -27,6 +27,7 @@ struct StabilityAssuranceTool: ParsableCommand {
     }
 }
 
+// MARK: ParsableArguments
 extension StabilityAssuranceTool {
     struct Options: ParsableArguments {
         @Flag(name: .long, help: "Show extra logging for debugging purposes")
@@ -37,6 +38,7 @@ extension StabilityAssuranceTool {
     }
 }
 
+// MARK: Test Parsable Command
 extension StabilityAssuranceTool {
     struct TestCommand: ParsableCommand {
         static var configuration = CommandConfiguration(
@@ -50,6 +52,7 @@ extension StabilityAssuranceTool {
     }
 }
 
+// MARK: Show Data Collected Command
 extension StabilityAssuranceTool {
     struct ShowCollectedData: ParsableCommand {
         static var configuration = CommandConfiguration(
@@ -60,15 +63,40 @@ extension StabilityAssuranceTool {
         @OptionGroup var options: StabilityAssuranceTool.Options
         
         mutating func run() throws {
+            let path = options.filepath
             
-            let filePath = options.filepath
-            guard FileManager.default.fileExists(atPath: filePath) else {
-                print("File doesn't exist at path: \(filePath)")
+            if isDirectory(at: path) {
+                try readDirectory(at: path)
+            } else {
+                try readFile(at: path)
+            }
+        }
+        
+        private func isDirectory(at path: String) -> Bool {
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
+        }
+        
+        private func readDirectory(at directoryPath: String) throws {
+            guard let enumerator = FileManager.default.enumerator(atPath: directoryPath) else {
+                print("Failed to enumerate the directory.")
                 return
             }
             
+//            let foundFilesCount = enumerator.allObjects.count
+//            print("Files found: \(foundFilesCount)")
+            
+            for case let file as String in enumerator {
+                if file.hasSuffix(".swift") {
+                    let filePath = (directoryPath as NSString).appendingPathComponent(file)
+                    try readFile(at: filePath)
+                }
+            }
+        }
+        
+        private func readFile(at filePath: String) throws {
             guard let file = try? String(contentsOfFile: filePath) else {
-                print("File at path isn't readable: \(filePath)")
+                print("File isn't readable at: \(filePath)")
                 return
             }
             
