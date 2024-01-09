@@ -32,13 +32,13 @@ struct StabilityAssuranceTool: ParsableCommand {
     
     // MARK: isDerectory inspection function
     // Function isDirectory inspects whether the path provided is a directory pathname or not
-    private func isDirectory(at path: String) -> Bool {
+    func isDirectory(at path: String) -> Bool {
         var isDirectory: ObjCBool = false
         return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
     }
     
     // MARK: Read directory at @directoryPath
-    private func readDirectory(at directoryPath: String) throws -> [ClassInfo] {
+    func readDirectory(at directoryPath: String) throws -> [ClassInfo] {
         guard let enumerator = FileManager.default.enumerator(atPath: directoryPath) else {
             print("Failed to enumerate the directory.")
             return []
@@ -59,7 +59,7 @@ struct StabilityAssuranceTool: ParsableCommand {
     }
     
     // MARK: Read file at @filePath
-    private func readFile(at filePath: String) throws -> [ClassInfo] {
+    func readFile(at filePath: String) throws -> [ClassInfo] {
         guard let file = try? String(contentsOfFile: filePath) else {
             print("File isn't readable at: \(filePath)")
             return []
@@ -107,7 +107,7 @@ extension StabilityAssuranceTool {
         
         mutating func run() throws {
             let path = options.filepath
-            print("Collected data for \(path)")
+            print("Collecting data for \(path)...")
             
             var visitorClasses: [ClassInfo] = []
             

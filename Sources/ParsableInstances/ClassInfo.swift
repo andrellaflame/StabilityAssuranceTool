@@ -12,7 +12,7 @@ class ClassInfo {
     var functionCount = 0
     var functions: [FunctionInfo] = []
     var variables: [VariableInfo] = []
-    var classParent: String?
+    var classParents: [String] = []
     var numberOfChildren: Int = 0
 
     init(name: String) {
@@ -28,7 +28,15 @@ extension ClassInfo {
         xmlString += "  <name>\(self.name)</name>\n"
         xmlString += "  <variableCount>\(self.variables.count)</variableCount>\n"
         xmlString += "  <functionCount>\(self.functionCount)</functionCount>\n"
-        xmlString += "  <classParentName>\(self.classParent ?? "NA")</classParentName>\n"
+        
+        if !self.classParents.isEmpty {
+            xmlString += "  <classParents>\n"
+            for classParent in self.classParents {
+                xmlString += "      <classParentName>\(classParent)</classParentName>\n"
+            }
+            xmlString += "  </classParents>\n"
+        }
+        
         xmlString += "  <numberOfChildren>\(self.numberOfChildren)</numberOfChildren>\n"
         
         for function in self.functions {

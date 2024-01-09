@@ -18,9 +18,11 @@ class CodeAnalyzer: SyntaxVisitor {
          let classInfo = ClassInfo(name: className)
          
          if let inheritanceClause = node.inheritanceClause {
-             if let baseClass = inheritanceClause.inheritedTypes.first {
-                 classInfo.classParent = baseClass.description.trimmingCharacters(in: .whitespaces)
-             }
+             let baseClasses = inheritanceClause
+                 .inheritedTypes
+                 .map { $0.description.trimmingCharacters(in: .whitespacesAndCommas) }
+                     
+             classInfo.classParents = baseClasses
          }
          
          classStack.append(classInfo)
@@ -53,7 +55,6 @@ class CodeAnalyzer: SyntaxVisitor {
         if let calledFunction = node.calledExpression.as(MemberAccessExprSyntax.self) {
             currentFunction.functionCalls += 1
             currentFunction.calledFunctions.append(calledFunction.declName.baseName.text)
-//            print("Function \(currentFunction.name) calls \(calledFunction.declName.baseName.text)")
         }
         
         return .skipChildren
@@ -78,3 +79,11 @@ class CodeAnalyzer: SyntaxVisitor {
     }
 }
 
+// MARK: CharacterSet extension
+extension CharacterSet {
+    static var whitespacesAndCommas: CharacterSet {
+        var characterSet = self.whitespaces
+        characterSet.insert(charactersIn: ",")
+        return characterSet
+    }
+}
