@@ -136,7 +136,8 @@ extension StabilityAssuranceTool {
             subcommands: [
                 RFC.self,
                 WMC.self,
-                NOC.self
+                NOC.self,
+                LinesCounter.self
             ]
         )
     }

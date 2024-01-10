@@ -78,12 +78,3 @@ class CodeAnalyzer: SyntaxVisitor {
         return .skipChildren
     }
 }
-
-// MARK: CharacterSet extension
-extension CharacterSet {
-    static var whitespacesAndCommas: CharacterSet {
-        var characterSet = self.whitespaces
-        characterSet.insert(charactersIn: ",")
-        return characterSet
-    }
-}
