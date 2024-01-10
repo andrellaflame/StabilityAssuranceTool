@@ -14,7 +14,15 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
     struct NOC: ParsableCommand {
         static var configuration = CommandConfiguration(
             commandName: "noc",
-            abstract: "A stability assurance tool command to evaluate `Number of Children` metric for Swift projects."
+            abstract: "A stability assurance tool command to evaluate `Number of Children` metric for Swift projects.",
+            discussion:
+                """
+                # Number of Children stability metric
+                
+                NOC equals the number of immediate child classes derived from a base class. NOC measures the breadth of a class hierarchy, where maximum DIT measures the depth.
+                
+                High NOC has been found to indicate fewer faults. This may be due to high reuse, which is desirable.
+                """
         )
         
         @OptionGroup var options: StabilityAssuranceTool.Options
@@ -23,8 +31,6 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             if data.isEmpty {
                 print("Passed data for evaluation of the NOC metric is empty. Check your filepath input.")
             } else {
-                print("Here should be some mark for NOC metric.")
-                
                 for classInstance in data {
                     classInstance.numberOfChildren = data
                         .filter { $0.classParents.contains(classInstance.name) }
@@ -35,7 +41,9 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                     $0 + Double($1.numberOfChildren) / Double(data.count)
                 }
                 
-                print("NOC value: \(average)")
+                let result = Double(round(average * 100) / 100)
+                
+                print("\nNOC value: \(result)")
             }
         }
         
