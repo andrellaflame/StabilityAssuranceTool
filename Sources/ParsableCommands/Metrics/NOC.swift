@@ -1,5 +1,5 @@
 //
-//  NumberOfChildren.swift
+//  NOC.swift
 //
 //
 //  Created by Andrii Sulimenko on 09.01.2024.
@@ -27,9 +27,11 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
-        private func evaluateNOC(for data: [ClassInfo]) {
+        func evaluateNOC(for data: [ClassInfo]) -> Double {
             if data.isEmpty {
                 print("Passed data for evaluation of the NOC metric is empty. Check your filepath input.")
+                
+                return 0
             } else {
                 for classInstance in data {
                     classInstance.numberOfChildren = data
@@ -42,8 +44,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 }
                 
                 let result = Double(round(average * 100) / 100)
-                
-                print("\nNOC value: \(result)")
+                return result
             }
         }
         
@@ -59,7 +60,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            evaluateNOC(for: visitorClasses)
+            let result = evaluateNOC(for: visitorClasses)
+            print("\nNOC value: \(result)")
         }
     }
 }

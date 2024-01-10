@@ -25,6 +25,33 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
+        func countLines(at path: String) -> [(Int, String)] {
+            let linesCountCommand = "find \(path) \\( -name \"*.m\" -or -name \"*.mm\" -or -name \"*.cpp\" -or -name \"*.swift\" \\) -print0 | xargs -0 wc -l"
+            
+            let result = executeCommand(command: linesCountCommand)
+            
+            let lines = result
+                .components(separatedBy: "\n")
+                .map {
+                    $0.trimmingCharacters(in: .whitespaces)
+                }
+                .filter { !$0.isEmpty }
+            
+            let tupledValues = lines.compactMap { line -> (Int, String)? in
+                let components = line.components(separatedBy: .whitespaces)
+                
+                if components.count >= 2, let numberOfLines = Int(components[0]) {
+                    let directory = components.dropFirst().joined(separator: " ")
+                    return (numberOfLines, directory)
+                }
+                
+                print("Some of the files can't be accessed by LinesCounter tool option. Check file extension and file access permissions")
+                return nil
+            }
+        
+            return tupledValues
+        }
+        
         private func executeCommand(command: String) -> String {
             let process = Process()
             process.launchPath = "/bin/bash"
@@ -44,29 +71,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             let path = options.filepath
             print("Trying to count lines of code at: \(path)")
             
-            let linesCountCommand = "find \(path) \\( -name \"*.m\" -or -name \"*.mm\" -or -name \"*.cpp\" -or -name \"*.swift\" \\) -print0 | xargs -0 wc -l"
-            
-            let result = executeCommand(command: linesCountCommand)
-            
-            let lines = result
-                .split(separator: " ")
-                .map {
-                    $0.description.trimmingCharacters(in: .whitespacesAndNewlines)
-                }
-            
-            guard lines.count % 2 == 0 else {
-                print("Some of the files can't be accessed by LinesCounter tool option. Check file extension and file access permissions")
-                return
-            }
-            
-            var tupledValues: [(Int, String)] = []
-            
-            for index in stride(from: 0, to: lines.count, by: 2) {
-                let touple = (Int(lines[index]) ?? 0, lines[index + 1])
-                tupledValues.append(touple)
-            }
-            
-            tupledValues.printTuples { tuple in
+            let tupledResult = countLines(at: path)
+            tupledResult.printTuples { tuple in
                 return "    \(tuple.0) lines: \(tuple.1)"
             }
         }

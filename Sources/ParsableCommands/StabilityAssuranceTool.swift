@@ -11,6 +11,7 @@ import SwiftParser
 
 @main
 struct StabilityAssuranceTool: ParsableCommand {
+    // MARK: SPM tool config
     static let configuration = CommandConfiguration(
         abstract: "A stability assurance tool to provide a quality check for Swift projects",
         subcommands: [
@@ -21,6 +22,7 @@ struct StabilityAssuranceTool: ParsableCommand {
         defaultSubcommand: TestCommand.self
     )
     
+    // MARK: SPM tool private function
     private func countVisitClasses(in file: String) -> [ClassInfo] {
         let sourceFile = Parser.parse(source: file)
         
@@ -137,8 +139,10 @@ extension StabilityAssuranceTool {
                 RFC.self,
                 WMC.self,
                 NOC.self,
-                LinesCounter.self
-            ]
+                LinesCounter.self,
+                StabilityAssuranceCheck.self
+            ],
+            defaultSubcommand: StabilityAssuranceCheck.self
         )
     }
 } 

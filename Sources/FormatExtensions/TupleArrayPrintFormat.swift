@@ -9,8 +9,8 @@ import Foundation
 
 extension Array {
     func printTuples(description: (Element) -> String) {
-            for element in self {
-                print(description(element))
-            }
+        for element in self {
+            print(description(element))
         }
+    }
 }

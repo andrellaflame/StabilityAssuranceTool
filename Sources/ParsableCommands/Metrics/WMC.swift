@@ -1,5 +1,5 @@
 //
-//  WeightedMethodPerClass.swift
+//  WMC.swift
 //
 //
 //  Created by Andrii Sulimenko on 09.01.2024.
@@ -47,9 +47,11 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         )
         var type: Complexity = .custom
         
-        private func evaluateWMC(for data: [ClassInfo], type: Complexity) {
+        func evaluateWMC(for data: [ClassInfo], type: Complexity) -> Double {
             if data.isEmpty {
                 print("Passed data for evaluation of the WMC metric is empty. Check your filepath input.")
+                
+                return 0
             } else {
                 var result: Double = 0
                 var average: Double = 0
@@ -73,7 +75,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 }
                 
                 result = Double(round(average * 100) / 100)
-                print("WMC value: \(result)")
+                return result
             }
         }
         
@@ -89,12 +91,16 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
+            var result: Double = 0
+            
             switch type {
             case .custom:
-                evaluateWMC(for: visitorClasses, type: .custom)
+                result = evaluateWMC(for: visitorClasses, type: .custom)
             case .unity:
-                evaluateWMC(for: visitorClasses, type: .unity)
+                result = evaluateWMC(for: visitorClasses, type: .unity)
             }
+            
+            print("\nWMC value: \(result)")
         }
     }
 }

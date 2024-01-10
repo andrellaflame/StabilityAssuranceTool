@@ -1,5 +1,5 @@
 //
-//  ResponseForClass.swift
+//  RFC.swift
 //
 //
 //  Created by Andrii Sulimenko on 09.01.2024.
@@ -27,9 +27,11 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
-        private func evaluateRFC(for data: [ClassInfo]) {
+        func evaluateRFC(for data: [ClassInfo]) -> Double {
             if data.isEmpty {
                 print("Passed data for evaluation of the RFC metric is empty. Check your filepath input.")
+                return 0
+                
             } else {
                 var totalRFC = 0
                 
@@ -39,15 +41,14 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                         classRFC += 1 + function.functionCalls
                     }
                     
-                    print("RFC value for class `\(classInstance.name)`: \(classRFC)")
-                    
                     totalRFC += classRFC
                 }
                 
                 let average = Double(totalRFC) / Double(data.count)
                 let result = Double(round(average * 100) / 100)
                 
-                print("\nRFC value: \(result)")
+                
+                return result
             }
         }
         
@@ -63,7 +64,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            evaluateRFC(for: visitorClasses)
+            let result = evaluateRFC(for: visitorClasses)
+            print("\nRFC value: \(result)")
         }
     }
 }
