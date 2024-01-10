@@ -47,24 +47,34 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         )
         var type: Complexity = .custom
         
-        private func evaluateWMC(for data: [ClassInfo], for mode: Complexity) {
+        private func evaluateWMC(for data: [ClassInfo], type: Complexity) {
             if data.isEmpty {
                 print("Passed data for evaluation of the WMC metric is empty. Check your filepath input.")
             } else {
-                print("Here should be some mark for WMC metric.")
+                var result: Double = 0
+                var average: Double = 0
+                
+                switch type {
+                case .custom:
+                    var totalWMC = 0
+                    
+                    for classInstance in data {
+                        for function in classInstance.functions {
+                            totalWMC += function.functionCalls
+                        }
+                    }
+                    
+                    average = Double(totalWMC) / Double(data.count)
+                    
+                case .unity:
+                    average = data.reduce(0.0) {
+                        $0 + Double($1.functionCount) / Double(data.count)
+                    }
+                }
+                
+                result = Double(round(average * 100) / 100)
+                print("WMC value: \(result)")
             }
-        }
-        
-        private func evaluateUnity(for data: [ClassInfo]) {
-            print("evaluateUnity is called")
-            
-            evaluateWMC(for: data, for: .unity)
-        }
-        
-        private func evaluateMode(for data: [ClassInfo]) {
-            print("evaluateMode is called")
-            
-            evaluateWMC(for: data, for: .custom)
         }
         
         mutating func run() throws {
@@ -81,9 +91,9 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             
             switch type {
             case .custom:
-                evaluateMode(for: visitorClasses)
+                evaluateWMC(for: visitorClasses, type: .custom)
             case .unity:
-                evaluateUnity(for: visitorClasses)
+                evaluateWMC(for: visitorClasses, type: .unity)
             }
         }
     }
