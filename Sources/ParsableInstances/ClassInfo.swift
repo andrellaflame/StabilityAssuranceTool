@@ -13,7 +13,11 @@ class ClassInfo {
     var functions: [FunctionInfo] = []
     var variables: [VariableInfo] = []
     var classParents: [String] = []
-    var numberOfChildren: Int = 0
+    
+    // MARK: Stability metrics values
+    var WMC: (Int, SATMark) = (0, .unowned)
+    var RFC: (Int, SATMark) = (0, .unowned)
+    var NOC: (Int, SATMark) = (0, .unowned)
 
     init(name: String) {
         self.name = name
@@ -37,7 +41,7 @@ extension ClassInfo {
             xmlString += "  </classParents>\n"
         }
         
-        xmlString += "  <numberOfChildren>\(self.numberOfChildren)</numberOfChildren>\n"
+        xmlString += "  <numberOfChildren>\(self.NOC)</numberOfChildren>\n"
         
         for function in self.functions {
             

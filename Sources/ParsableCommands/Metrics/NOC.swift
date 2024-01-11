@@ -27,24 +27,20 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
-        func evaluateNOC(for data: [ClassInfo]) -> Double {
+        func evaluateNOC(for data: [ClassInfo]) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the NOC metric is empty. Check your filepath input.")
-                
-                return 0
+                return data
             } else {
                 for classInstance in data {
-                    classInstance.numberOfChildren = data
-                        .filter { $0.classParents.contains(classInstance.name) }
-                        .count
+                    classInstance.NOC = (
+                        data
+                            .filter { $0.classParents.contains(classInstance.name) }
+                            .count
+                        , .unowned
+                    )
                 }
-                
-                let average: Double = data.reduce(0.0) {
-                    $0 + Double($1.numberOfChildren) / Double(data.count)
-                }
-                
-                let result = Double(round(average * 100) / 100)
-                return result
+               return data
             }
         }
         
@@ -60,7 +56,12 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            let result = evaluateNOC(for: visitorClasses)
+            let evaluatedNOC = evaluateNOC(for: visitorClasses)
+            let average: Double = evaluatedNOC.reduce(0.0) {
+                $0 + Double($1.NOC.0) / Double(evaluatedNOC.count)
+            }
+            
+            let result = Double(round(average * 100) / 100)
             print("\nNOC value: \(result)")
         }
     }

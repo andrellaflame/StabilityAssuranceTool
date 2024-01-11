@@ -27,28 +27,20 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
-        func evaluateRFC(for data: [ClassInfo]) -> Double {
+        func evaluateRFC(for data: [ClassInfo]) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the RFC metric is empty. Check your filepath input.")
-                return 0
+                return data
                 
             } else {
-                var totalRFC = 0
-                
-                for classInstance in data {
-                    var classRFC = 0
-                    for function in classInstance.functions {
-                        classRFC += 1 + function.functionCalls
-                    }
-                    
-                    totalRFC += classRFC
+                data.forEach { classInstance in
+                    classInstance.RFC = (
+                        classInstance.functions
+                            .reduce(0) { $0 + 1 + $1.functionCalls }
+                        , .unowned
+                    )
                 }
-                
-                let average = Double(totalRFC) / Double(data.count)
-                let result = Double(round(average * 100) / 100)
-                
-                
-                return result
+                return data
             }
         }
         
@@ -64,7 +56,12 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            let result = evaluateRFC(for: visitorClasses)
+            let evaluatedRFC = evaluateRFC(for: visitorClasses)
+            let totalRFC = evaluatedRFC.reduce(0) { $0 + $1.RFC.0 }
+            
+            let average = Double(totalRFC) / Double(evaluatedRFC.count)
+            let result = Double(round(average * 100) / 100)
+            
             print("\nRFC value: \(result)")
         }
     }

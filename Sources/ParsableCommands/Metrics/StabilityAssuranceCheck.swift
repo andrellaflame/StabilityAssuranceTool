@@ -25,18 +25,126 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         @OptionGroup var options: StabilityAssuranceTool.Options
         
-        private func evaluateProduct(at path: String, for data: [ClassInfo]) -> [(any Numeric, String)] {
-            var result: [(any Numeric, String)] = []
+//        private func evaluateProduct(at path: String, for data: [ClassInfo]) -> [(any Numeric, String)] {
+//            var result: [(any Numeric, String)] = []
+//            
+//            let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
+//            let evaluatedRFC = RFC().evaluateRFC(for: data)
+//            let evaluatedNOC = NOC().evaluateNOC(for: data)
+//            
+////            result.append((WMCvalue, "WMC"))
+////            result.append((RFCvalue, "RFC"))
+////            result.append((NOCvalue, "NOC"))
+//            
+//            
+//            
+//            return result
+//        }
+        
+        private func evaluateProduct(at path: String, for data: [ClassInfo]) -> SATReportWriter {
+            // MARK: Evaluating metrics
+            let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
+            let evaluatedRFC = RFC().evaluateRFC(for: evaluatedWMC)
+            let evaluatedResult = NOC().evaluateNOC(for: evaluatedRFC)
             
-            let WMCvalue = WMC().evaluateWMC(for: data, type: .custom)
-            let RFCvalue = RFC().evaluateRFC(for: data)
-            let NOCvalue = NOC().evaluateNOC(for: data)
+            var evaluatedMetrics: [(String, any Numeric, SATMark)] = []
+            var scale: ProjectSize = .unowned
             
-            result.append((WMCvalue, "WMC"))
-            result.append((RFCvalue, "RFC"))
-            result.append((NOCvalue, "NOC"))
+            // Allowed values for metrics that are directly dependant on the scale of the product
+            var allowedValueNOCPerClass: Double = 0
             
-            return result
+            // Total WMC
+            let totalWMC = evaluatedResult.reduce(0) { $0 + $1.WMC.0 }
+            let averageWMC: Double = Double(totalWMC) / Double(evaluatedWMC.count)
+            let averageRoundedValueWMC: Double = Double(round(averageWMC * 100) / 100)
+            var classesWithHighWMC: Double = 0
+            
+            // Total RFC
+            let totalRFC = evaluatedResult.reduce(0) { $0 + $1.RFC.0 }
+            let averageRFC = Double(totalRFC) / Double(evaluatedResult.count)
+            let averageRoundedValueRFC: Double = Double(round(averageRFC * 100) / 100)
+            
+            // Total NOC
+            let averageNOC: Double = evaluatedResult.reduce(0.0) {
+                $0 + Double($1.NOC.0) / Double(evaluatedResult.count)
+            }
+            let averageRoundedValueNOC: Double = Double(round(averageNOC * 100) / 100)
+            
+            // Total LOC
+            let linesCount = LinesCounter().countLines(at: path).last?.0 ?? 0
+            evaluatedMetrics.append(("LOC", linesCount, .unowned))
+            
+            switch data.count {
+            case let value where value < 50:
+                scale = .small
+                allowedValueNOCPerClass = Double(data.count) * 0.1
+            case let value where value < 200:
+                scale = .medium
+                allowedValueNOCPerClass = Double(data.count) * 0.3
+            default:
+                scale = .large
+                allowedValueNOCPerClass = Double(data.count) * 0.5
+            }
+            
+            
+            for classInstance in evaluatedResult {
+                switch Double(classInstance.NOC.0) {
+                case let NOCvalue where NOCvalue < allowedValueNOCPerClass:
+                    classInstance.NOC.1 = .good
+                case let NOCvalue where NOCvalue < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1:
+                    classInstance.NOC.1 = .accepted
+                default:
+                    classInstance.NOC.1 = .poor
+                }
+                
+                switch Double(classInstance.WMC.0) {
+                case let WMCvalue where WMCvalue <= averageWMC:
+                    classInstance.WMC.1 = .good
+                case let WMCvalue where WMCvalue < averageWMC + averageWMC * 0.1:
+                    classInstance.WMC.1 = .accepted
+                    classesWithHighWMC += 1
+                default:
+                    classInstance.WMC.1 = .poor
+                    classesWithHighWMC += 1
+                }
+                
+                switch Double(classInstance.RFC.0) {
+                case let RFCvalue where RFCvalue < 50:
+                    classInstance.RFC.1 = .good
+                case let RFCvalue where RFCvalue < 100:
+                    classInstance.RFC.1 = .accepted
+                default:
+                    classInstance.RFC.1 = .poor
+                }
+            }
+            
+            // Marking metrics
+            let WMCmark: SATMark =
+            classesWithHighWMC <= Double(evaluatedResult.count) * 0.1 ? .good:
+            classesWithHighWMC <= Double(evaluatedResult.count) * 0.3 ? .accepted:
+                .poor
+            
+            let NOCmark: SATMark =
+            averageNOC < allowedValueNOCPerClass ? .good:
+            averageNOC < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1 ? .accepted:
+                .poor
+            
+            let RFCmark: SATMark =
+            averageRFC < 50 ? .good:
+            averageRFC < 100 ? .accepted:
+                .poor
+            
+            // Appending metrics results
+            evaluatedMetrics.append(("WMC", averageRoundedValueWMC, WMCmark))
+            evaluatedMetrics.append(("NOC", averageRoundedValueNOC, NOCmark))
+            evaluatedMetrics.append(("RFC", averageRoundedValueRFC, RFCmark))
+            
+            return SATReportWriter(
+                projectDirectory: path,
+                projectScale: scale,
+                evaluatedMetrics: evaluatedMetrics,
+                evaluatedData: evaluatedResult
+            )
         }
         
         mutating func run() throws {
@@ -51,31 +159,13 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            let tupledResults = evaluateProduct(at: path, for: visitorClasses)
-            let linesCount = LinesCounter().countLines(at: path).last?.0
+
+            let report = evaluateProduct(at: path, for: visitorClasses)
+            print(report.description)
+//            tupledResults.printTuples { tuple in
+//                return "    \(tuple.1): \(tuple.0)"
+//            }
             
-            print(
-                """
-                
-                --------------------------------------------
-                    System analyzed: \(Colors.red)Swift 􀫊\(Colors.reset)
-                --------------------------------------------
-                    Project Overview
-                
-                    Number of classes: \(visitorClasses.count) 􀍞
-                    Lines of code: \(linesCount ?? 0) 􀣠
-                
-                --------------------------------------------
-                    Metrics Summary \(Colors.green)􀇺\(Colors.reset)
-                
-                """
-            )
-            
-            tupledResults.printTuples { tuple in
-                return "    \(tuple.1): \(tuple.0)"
-            }
-            
-            print("\n--------------------------------------------\n")
         }
     }
 }

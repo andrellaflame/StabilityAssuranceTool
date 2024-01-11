@@ -40,42 +40,32 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 
                 --type unity | represents all method complexities that are considered to be unity, which implies that the number of called methods is the main complexity factor.
                 
-                --type custom | represents custom complexity metric that uses response set for the class value from RFC wihtout considering the number of methods in class
+                --type custom | represents custom complexity metric that uses response set for the class value from RFC wihtout considering the number of methods in class.
                 
                 
                 """
         )
         var type: Complexity = .custom
         
-        func evaluateWMC(for data: [ClassInfo], type: Complexity) -> Double {
+        func evaluateWMC(for data: [ClassInfo], type: Complexity) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the WMC metric is empty. Check your filepath input.")
-                
-                return 0
+                return data
             } else {
-                var result: Double = 0
-                var average: Double = 0
-                
                 switch type {
                 case .custom:
-                    var totalWMC = 0
-                    
-                    for classInstance in data {
-                        for function in classInstance.functions {
-                            totalWMC += function.functionCalls
-                        }
+                    data.forEach { classInstance in
+                        classInstance.WMC = (
+                            classInstance.functions
+                                .compactMap { $0.functionCalls }
+                                .reduce(0, +)
+                            , .unowned
+                        )
                     }
-                    
-                    average = Double(totalWMC) / Double(data.count)
-                    
                 case .unity:
-                    average = data.reduce(0.0) {
-                        $0 + Double($1.functionCount) / Double(data.count)
-                    }
+                    data.forEach { $0.WMC = ($0.functionCount, .unowned) }
                 }
-                
-                result = Double(round(average * 100) / 100)
-                return result
+                return data
             }
         }
         
@@ -91,15 +81,23 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            var result: Double = 0
+            var average: Double = 0
             
             switch type {
             case .custom:
-                result = evaluateWMC(for: visitorClasses, type: .custom)
+                let evaluatedWMC = evaluateWMC(for: visitorClasses, type: .custom)
+                let totalWMC = evaluatedWMC.reduce(0) { $0 + $1.WMC.0 }
+                
+                average = Double(totalWMC) / Double(evaluatedWMC.count)
+                
             case .unity:
-                result = evaluateWMC(for: visitorClasses, type: .unity)
+                let evaluatedWMC = evaluateWMC(for: visitorClasses, type: .unity)
+                average = evaluatedWMC.reduce(0.0) {
+                    $0 + Double($1.functionCount) / Double(evaluatedWMC.count)
+                }
             }
             
+            let result = Double(round(average * 100) / 100)
             print("\nWMC value: \(result)")
         }
     }
