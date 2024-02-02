@@ -9,6 +9,7 @@ import ArgumentParser
 import Foundation
 import SwiftSyntax
 import SwiftParser
+import AppKit
 
 extension StabilityAssuranceTool.StabilityAssuranceMark {
     struct StabilityAssuranceCheck: ParsableCommand {
@@ -24,24 +25,21 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         )
         
         @OptionGroup var options: StabilityAssuranceTool.Options
+        @Option(
+            help:
+                """
+                The output format type for the overall stability report.
+                
+                --type console | printed console output for generated product stability assurance check.
+                
+                --type html | auto-generaged HTML page for the product stability assurance check report.
+                
+                
+                """
+        )
+        var type: OutputFormat = .console
         
-//        private func evaluateProduct(at path: String, for data: [ClassInfo]) -> [(any Numeric, String)] {
-//            var result: [(any Numeric, String)] = []
-//            
-//            let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
-//            let evaluatedRFC = RFC().evaluateRFC(for: data)
-//            let evaluatedNOC = NOC().evaluateNOC(for: data)
-//            
-////            result.append((WMCvalue, "WMC"))
-////            result.append((RFCvalue, "RFC"))
-////            result.append((NOCvalue, "NOC"))
-//            
-//            
-//            
-//            return result
-//        }
-        
-        private func evaluateProduct(at path: String, for data: [ClassInfo]) -> SATReportWriter {
+        private func evaluateProduct(at path: String, for data: [ClassInfo], type: OutputFormat) -> SATReportWriter {
             // MARK: Evaluating metrics
             let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
             let evaluatedRFC = RFC().evaluateRFC(for: evaluatedWMC)
@@ -139,12 +137,25 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             evaluatedMetrics.append(("NOC", averageRoundedValueNOC, NOCmark))
             evaluatedMetrics.append(("RFC", averageRoundedValueRFC, RFCmark))
             
-            return SATReportWriter(
-                projectDirectory: path,
-                projectScale: scale,
-                evaluatedMetrics: evaluatedMetrics,
-                evaluatedData: evaluatedResult
-            )
+            switch type {
+            case .console:
+                return SATReportWriter(
+                    projectDirectory: path,
+                    projectScale: scale,
+                    evaluatedMetrics: evaluatedMetrics,
+                    evaluatedData: evaluatedResult,
+                    outputFormat: .console
+                )
+                
+            case .html:
+                return SATReportWriter(
+                    projectDirectory: path,
+                    projectScale: scale,
+                    evaluatedMetrics: evaluatedMetrics,
+                    evaluatedData: evaluatedResult,
+                    outputFormat: .html
+                )
+            }
         }
         
         mutating func run() throws {
@@ -159,14 +170,33 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
+            switch type {
+            case .console:
+                let satResult = evaluateProduct(at: path, for: visitorClasses, type: .console)
+                print(satResult.report)
+            case .html:
+                let report = evaluateProduct(
+                    at: path,
+                    for: visitorClasses,
+                    type: .html
+                ).report
+                
+                let tempDirectory = FileManager.default.temporaryDirectory
+                let htmlFilePath = tempDirectory.appendingPathComponent("report.html")
 
-            let report = evaluateProduct(at: path, for: visitorClasses)
-            print(report.description)
-//            tupledResults.printTuples { tuple in
-//                return "    \(tuple.1): \(tuple.0)"
-//            }
-            
+                do {
+                    try report.write(to: htmlFilePath, atomically: true, encoding: .utf8)
+                } catch {
+                    print("Error writing HTML file: \(error)")
+                }
+
+                // Step 3: Open the HTML file in the default web browser
+                if NSWorkspace.shared.open(htmlFilePath) {
+                    print("Report is openned in HTML file successfully.")
+                } else {
+                    print("Failed to open HTML file.")
+                }
+            }
         }
     }
 }
-
