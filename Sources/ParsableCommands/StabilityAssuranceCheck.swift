@@ -11,8 +11,14 @@ import SwiftSyntax
 import SwiftParser
 import AppKit
 
+
 extension StabilityAssuranceTool.StabilityAssuranceMark {
+    /// Overall product stability mark
+    ///
+    /// This mark is evaluated using results of all metrics counted together for the project in passed directory. It uses predefined tables of values for particular metrics.
     struct StabilityAssuranceCheck: ParsableCommand {
+        
+        // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "stats",
             abstract: "The main stability assurance tool command to evaluate `Overall stability mark` for Swift projects.",
@@ -24,6 +30,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 """
         )
         
+        // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         @Option(
             help:
@@ -37,8 +44,14 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 
                 """
         )
+        
         var type: OutputFormat = .console
         
+        /// Evaluates overall stability of the product at passed data and path
+        /// - Parameter path: `String` filePath value for the product
+        /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
+        /// - Parameter type: `OutputFormat` format option for the overall mark output
+        /// - Returns: `SATReportWriter` object for stability evaluation report
         private func evaluateProduct(at path: String, for data: [ClassInfo], type: OutputFormat) -> SATReportWriter {
             // MARK: Evaluating metrics
             let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
@@ -158,6 +171,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             }
         }
         
+        // MARK: - Metric run func
+        /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
             let path = options.filepath
             print("Trying to apply metrics to evaluate stability for: \(path)")

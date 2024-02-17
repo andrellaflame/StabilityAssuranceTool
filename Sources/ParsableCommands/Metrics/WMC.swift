@@ -11,7 +11,12 @@ import SwiftSyntax
 import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceMark {
+    /// WMC | Weighted Method per Class stability metric
+    ///
+    /// WMC is measures the sum of complexity of the methods in a class.
     struct WMC: ParsableCommand {
+        
+        // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "wmc",
             abstract: "A stability assurance tool command to evaluate `Weighted Method per Class` metric for Swift projects.",
@@ -27,10 +32,12 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 """
         )
         
+        /// Enum containing `ExpressibleByArgument` options for WMC `ParsableCommand`
         enum Complexity: String, ExpressibleByArgument {
             case custom, unity
         }
         
+        // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         
         @Option(
@@ -47,6 +54,10 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         )
         var type: Complexity = .custom
         
+        /// Evaluates WMC stability metric for passed data
+        /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
+        /// - Parameter type: `Complexity` option for WMC metric
+        /// - Returns: `ClassInfo` array containing calculated WMC stability metric value
         func evaluateWMC(for data: [ClassInfo], type: Complexity) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the WMC metric is empty. Check your filepath input.")
@@ -69,6 +80,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             }
         }
         
+        // MARK: - Metric run func
+        /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
             let path = options.filepath
             print("Trying to use WMC metric at: \(path)")

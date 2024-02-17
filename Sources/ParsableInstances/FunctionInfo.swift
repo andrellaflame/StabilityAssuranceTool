@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Represents information about a function.
 class FunctionInfo {
     var name: String
     var signature: String
@@ -14,7 +15,12 @@ class FunctionInfo {
     var functionCalls: Int
     var calledFunctions: [String] = []
     
-    
+    /// Initializes a new instance of `FunctionInfo` with the given parameters.
+    /// - Parameters:
+    ///   - name: The name of the function.
+    ///   - signature: The signature of the function.
+    ///   - scope: The scope of the function.
+    ///   - functionCalls: The number of times the function is called.
     init(name: String, signature: String, scope: String, functionCalls: Int) {
         self.name = name
         self.signature = signature

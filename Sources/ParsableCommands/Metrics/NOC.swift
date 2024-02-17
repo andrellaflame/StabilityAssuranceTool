@@ -11,7 +11,12 @@ import SwiftSyntax
 import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceMark {
+    /// NOC | Number of Children stability metric
+    ///
+    /// NOC equals the number of immediate child classes derived from a base class. NOC measures the breadth of a class hierarchy, where maximum DIT measures the depth.
     struct NOC: ParsableCommand {
+        
+        // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "noc",
             abstract: "A stability assurance tool command to evaluate `Number of Children` metric for Swift projects.",
@@ -25,8 +30,12 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 """
         )
         
+        // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         
+        /// Evaluates NOC stability metric for passed data
+        /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
+        /// - Returns: `ClassInfo` array containing calculated NOC stability metric value
         func evaluateNOC(for data: [ClassInfo]) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the NOC metric is empty. Check your filepath input.")
@@ -44,6 +53,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             }
         }
         
+        // MARK: - Metric run func
+        /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
             let path = options.filepath
             print("Trying to use NOC metric at: \(path)")

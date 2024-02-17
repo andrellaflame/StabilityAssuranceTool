@@ -7,15 +7,25 @@
 
 import Foundation
 
+/// Add Stability Assurance Tool (SAT) reports in different formats.
 struct SATReportWriter {
+    
+    /// The directory of the project being analyzed.
     let projectDirectory: String
+    
+    /// The scale of the project (e.g., small, medium, large).
     let projectScale: ProjectSize
     
+    /// Evaluated metrics for the project, including their values and marks.
     let evaluatedMetrics: [(String, any Numeric, SATMark)]
+    
+    /// Evaluated data for each class in the project.
     let evaluatedData: [ClassInfo]
     
+    /// The output format for the report.
     let outputFormat: OutputFormat
     
+    /// Generates the SAT report based on the provided data and format.
     var report: String {
         let (_, valueWMC, markWMC) = evaluatedMetrics
             .filter { $0.0 == "WMC" }
@@ -88,6 +98,7 @@ struct SATReportWriter {
         return contextedReport
     }
     
+    /// Generates a comment based on the given metric, value, and mark.
     private func generateComment(metric: String, metricValue: Int = 0, mark: SATMark = .unowned) -> String {
         var comment = ""
         
@@ -129,6 +140,7 @@ struct SATReportWriter {
         return comment
     }
     
+    /// Generates the report context based on the output format and report data.
     private func generateReportContext(for format: OutputFormat, from data: SATReport) -> String {
         
         var reportContext = ""

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Represents gathered information about a class.
 class ClassInfo {
     var name: String
     var functionCount = 0
@@ -15,16 +16,24 @@ class ClassInfo {
     var classParents: [String] = []
     
     // MARK: Stability metrics values
+    /// Weighted Method Count (WMC) metric value and its stability mark.
     var WMC: (Int, SATMark) = (0, .unowned)
+    
+    /// Response For a Class (RFC) metric value and its stability mark.
     var RFC: (Int, SATMark) = (0, .unowned)
+    
+    /// Number Of Children (NOC) metric value and its stability mark.
     var NOC: (Int, SATMark) = (0, .unowned)
-
+    
+    /// Initializes a new instance of `ClassInfo` with the given name.
+    /// - Parameter name: The name of the class.
     init(name: String) {
         self.name = name
     }
 }
 
 extension ClassInfo {
+    /// A textual representation of the class information.
     var description: String {
         var xmlString = "--------------------------------------------\n"
         

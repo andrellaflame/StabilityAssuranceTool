@@ -8,15 +8,20 @@
 import Foundation
 import SwiftSyntax
 
+/// Analyzes Swift code syntax to extract class, function, and variable information.
 class CodeAnalyzer: SyntaxVisitor {
 
+    /// Stack to keep track of class information during traversal.
     var classStack: [ClassInfo] = []
+    
+    /// Total count of classes encountered during traversal.
     var classCount = 0
 
      override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
          let className = node.name.text
          let classInfo = ClassInfo(name: className)
          
+         // Extracting inheritance information if available
          if let inheritanceClause = node.inheritanceClause {
              let baseClasses = inheritanceClause
                  .inheritedTypes

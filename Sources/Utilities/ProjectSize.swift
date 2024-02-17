@@ -7,6 +7,9 @@
 
 import Foundation
 
+// MARK: - ProjectSize value
+
+/// `ProjectSize` enum for evaluation adjustment.
 enum ProjectSize: String {
     case unowned, small, medium, large
 }

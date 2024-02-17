@@ -7,6 +7,9 @@
 
 import Foundation
 
+// MARK: - SATMark value
+
+/// `SATMark` enum for evaluated product.
 enum SATMark: String {
     case unowned, good, accepted, poor
 }

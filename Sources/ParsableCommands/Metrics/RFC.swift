@@ -11,7 +11,12 @@ import SwiftSyntax
 import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceMark {
+    
+    /// RFC | Response for Class stability metric
+    ///
+    /// The response set of a class is a set of methods that can potentially be executed in response to a message received by an object of that class.
     struct RFC: ParsableCommand {
+        // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "rfc",
             abstract: "A stability assurance tool command to evaluate `Response for Class` metric for Swift projects.",
@@ -25,8 +30,12 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 """
         )
         
+        // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         
+        /// Evaluates RFC stability metric for passed data
+        /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
+        /// - Returns: `ClassInfo` array containing calculated RFC stability metric value
         func evaluateRFC(for data: [ClassInfo]) -> [ClassInfo] {
             if data.isEmpty {
                 print("Passed data for evaluation of the RFC metric is empty. Check your filepath input.")
@@ -44,6 +53,8 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             }
         }
         
+        // MARK: - Metric run func
+        /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
             let path = options.filepath
             print("Trying to use RFC metric at: \(path)")
