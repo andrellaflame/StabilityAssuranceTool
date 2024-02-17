@@ -39,9 +39,12 @@ dependencies: [
 
 > Example usage: 
 >
-> ```$ swift run sat test
+> ```$ swift run sat test```
+
 ![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Sources/Utilities/DocumentationImages/testCommandExample.jpg?raw=true)
-> ```$ swift run sat evaluate
+
+> ```$ swift run sat evaluate```
+
 ![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Sources/Utilities/DocumentationImages/evaluateCommandExample.jpg?raw=true)
 
 ## Documentation
