@@ -17,7 +17,7 @@ To use StabilityAssuranceTool in your Swift project, add it as a dependency in y
 ```
 swift
 dependencies: [
-    .package(url: "link/to/stability-assurance-tool", from: "1.0.0")
+    .package(url: "https://github.com/andrellaflame/StabilityAssuranceTool.git", from: "1.0.0")
 ]
 ```
 
@@ -26,7 +26,6 @@ dependencies: [
 ### StabilityAssuranceTool provides several subcommands to interact with:
 
 - ```test``` (default): Test command to demnstrate the work of SPM tool.
-- ```countLines```: Count the number of lines for Swift projects.
 - ```showData```: Show collected data for the specified filepath.
 - ```evaluate```: Evaluate the stability of the source code for the specified filepath.
     
@@ -40,8 +39,10 @@ dependencies: [
 
 > Example usage: 
 >
-> ```$ sat countLines --filepath /path/to/project``` - release configuration
-> ```$ swift run sat countLines --filepath /path/to/project``` - debug configuration
+> ```$ swift run sat test
+![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Sources/Utilities/TestCommandExample.png?raw=true)
+> ```$ swift run sat evaluate
+![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Sources/Utilities/EvaluateCommandExample.png?raw=true)
 
 
 ## Documentation
@@ -54,7 +55,7 @@ dependencies: [
 >
 > ```shift + command + o``` to open `Developer Documentation`
 
-## Lisence
+## License
 
 All rights for this software belong to `National University of Kyiv-Mohyla Academy` as it's part of the Bachelor's research project done by Andrii Sulimenko, 3rd year Software Engineering student
 
