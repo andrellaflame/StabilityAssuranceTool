@@ -1,6 +1,9 @@
 # StabilityAssuranceTool
 
-![Swift Version](https://img.shields.io/badge/Swift-4.2-orange.svg)
+![Swift Version](https://img.shields.io/badge/Swift-4.2-orange.svg) ![Static Badge](https://img.shields.io/badge/@copyright-NaUKMA-blue)
+
+![GitHub watchers](https://img.shields.io/github/watchers/andrellaflame/StabilityAssuranceTool)
+
 
 StabilityAssuranceTool is a Swift Package Manager (SPM) tool designed to provide quality checks for Swift projects. It offers various metrics to evaluate the stability and quality of Swift codebases.
 
@@ -54,8 +57,10 @@ dependencies: [
 - **StabilityAssuranceTool**: Documentation is available in `Developer Documentation`.
 
 > Note: 
->
-> ```shift + command + o``` to open `Developer Documentation`
+> To open `Developer Documentation`
+```
+shift + command + o
+``` 
 
 ## License
 
