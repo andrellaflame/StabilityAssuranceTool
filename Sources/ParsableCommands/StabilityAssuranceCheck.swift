@@ -9,7 +9,9 @@ import ArgumentParser
 import Foundation
 import SwiftSyntax
 import SwiftParser
+#if canImport(AppKit)
 import AppKit
+#endif
 
 
 extension StabilityAssuranceTool.StabilityAssuranceMark {
@@ -193,14 +195,14 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 }
 
                 // Step 3: Open the HTML file in the default web browser
-#if os(macOS)
+#if canImport(AppKit)
                 if NSWorkspace.shared.open(htmlFilePath) {
                     print("Report is opened in HTML file successfully.")
                 } else {
                     print("Failed to open HTML file.")
                 }
 #else
-                print("NSWorkspace is not available on iOS.")
+                print("NSWorkspace is not available.")
 #endif
             case .file(let filePath):
                 do {
