@@ -56,7 +56,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.filepath
+            let path = options.inputFile
             print("Trying to use NOC metric at: \(path)")
             
             var visitorClasses: [ClassInfo] = []
