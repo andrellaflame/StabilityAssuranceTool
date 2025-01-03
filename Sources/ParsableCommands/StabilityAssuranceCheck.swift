@@ -193,11 +193,15 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 }
 
                 // Step 3: Open the HTML file in the default web browser
+#if os(macOS)
                 if NSWorkspace.shared.open(htmlFilePath) {
-                    print("Report is openned in HTML file successfully.")
+                    print("Report is opened in HTML file successfully.")
                 } else {
                     print("Failed to open HTML file.")
                 }
+#else
+                print("NSWorkspace is not available on iOS.")
+#endif
             case .file(let filePath):
                 do {
                     try report.write(to: URL(fileURLWithPath: filePath), atomically: true, encoding: .utf8)
