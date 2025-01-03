@@ -37,15 +37,15 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 """
                 The output format type for the overall stability report.
                 
-                --type console | printed console output for generated product stability assurance check.
+                --output console | printed console output for generated product stability assurance check.
                 
-                --type html | auto-generaged HTML page for the product stability assurance check report.
+                --output html | auto-generaged HTML page for the product stability assurance check report.
                 
-                
+                NOTE: In order to save generated product stability assurance report to a file, add output file path after input directory path
                 """
         )
         
-        var type: OutputFormat = .console
+        var output: OutputFormat = .console
         
         /// Evaluates overall stability of the product at passed data and path
         /// - Parameter path: `String` filePath value for the product
@@ -150,31 +150,19 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             evaluatedMetrics.append(("NOC", averageRoundedValueNOC, NOCmark))
             evaluatedMetrics.append(("RFC", averageRoundedValueRFC, RFCmark))
             
-            switch type {
-            case .console:
-                return SATReportWriter(
-                    projectDirectory: path,
-                    projectScale: scale,
-                    evaluatedMetrics: evaluatedMetrics,
-                    evaluatedData: evaluatedResult,
-                    outputFormat: .console
-                )
-                
-            case .html:
-                return SATReportWriter(
-                    projectDirectory: path,
-                    projectScale: scale,
-                    evaluatedMetrics: evaluatedMetrics,
-                    evaluatedData: evaluatedResult,
-                    outputFormat: .html
-                )
-            }
+            return SATReportWriter(
+                projectDirectory: path,
+                projectScale: scale,
+                evaluatedMetrics: evaluatedMetrics,
+                evaluatedData: evaluatedResult,
+                outputFormat: output
+            )
         }
         
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.filepath
+            let path = options.inputFile
             print("Trying to apply metrics to evaluate stability for: \(path)")
             
             var visitorClasses: [ClassInfo] = []
@@ -185,17 +173,16 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            switch type {
+            let report = evaluateProduct(
+                at: path,
+                for: visitorClasses,
+                type: output
+            ).report
+            
+            switch output {
             case .console:
-                let satResult = evaluateProduct(at: path, for: visitorClasses, type: .console)
-                print(satResult.report)
+                print(report)
             case .html:
-                let report = evaluateProduct(
-                    at: path,
-                    for: visitorClasses,
-                    type: .html
-                ).report
-                
                 let tempDirectory = FileManager.default.temporaryDirectory
                 let htmlFilePath = tempDirectory.appendingPathComponent("report.html")
 
@@ -210,6 +197,13 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                     print("Report is openned in HTML file successfully.")
                 } else {
                     print("Failed to open HTML file.")
+                }
+            case .file(let filePath):
+                do {
+                    try report.write(to: URL(fileURLWithPath: filePath), atomically: true, encoding: .utf8)
+                    print("Report written to file at \(filePath).")
+                } catch {
+                    print("Error writing file: \(error)")
                 }
             }
         }

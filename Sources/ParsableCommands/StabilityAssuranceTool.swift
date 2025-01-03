@@ -93,8 +93,8 @@ extension StabilityAssuranceTool {
         @Flag(name: .long, help: "Show extra logging for debugging purposes")
         private var verbose = false
 
-        @Argument(help: "The filepath for data collection.")
-        var filepath: String
+        @Argument(help: "The file path for data collection.")
+        var inputFile: String
     }
 }
 
@@ -125,7 +125,7 @@ extension StabilityAssuranceTool {
         @OptionGroup var options: StabilityAssuranceTool.Options
         
         mutating func run() throws {
-            let path = options.filepath
+            let path = options.inputFile
             print("Collecting data for \(path)...")
             
             var visitorClasses: [ClassInfo] = []
