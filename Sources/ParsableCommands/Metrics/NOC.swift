@@ -44,7 +44,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 for classInstance in data {
                     classInstance.NOC = (
                         data
-                            .filter { $0.classParents.contains(classInstance.name) }
+                            .filter { $0.classParents.contains(classInstance.declaration.name) }
                             .count
                         , .unowned
                     )

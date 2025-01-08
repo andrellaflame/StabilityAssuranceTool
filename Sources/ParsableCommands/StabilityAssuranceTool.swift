@@ -27,10 +27,10 @@ struct StabilityAssuranceTool: ParsableCommand {
     /// Count the visited classes in a Swift file
     /// - Parameter file: `String` filePath value for the product's Swift file
     /// - Returns: An array of `ClassInfo` representing the visited classes
-    private func countVisitClasses(in file: String) -> [ClassInfo] {
-        let sourceFile = Parser.parse(source: file)
+    private func countVisitClasses(fileContent: String, filePath: String) -> [ClassInfo] {
+        let sourceFile = Parser.parse(source: fileContent)
         
-        let analyzer = CodeAnalyzer(viewMode: .sourceAccurate)
+        let analyzer = CodeAnalyzer(sourceFile: sourceFile, filePath: filePath, viewMode: .sourceAccurate)
         analyzer.walk(sourceFile)
         
         return analyzer.classStack
@@ -62,7 +62,6 @@ struct StabilityAssuranceTool: ParsableCommand {
             if file.hasSuffix(".swift") {
                 let filePath = (directoryPath as NSString).appendingPathComponent(file)
                 let retrievedClasses = try readFile(at: filePath)
-                
                 visitorClasses.append(contentsOf: retrievedClasses)
             }
         }
@@ -76,13 +75,8 @@ struct StabilityAssuranceTool: ParsableCommand {
     /// - Throws: If reading file content fails.
     /// - Returns: An array of `ClassInfo` representing the classes found.
     func readFile(at filePath: String) throws -> [ClassInfo] {
-        guard let file = try? String(contentsOfFile: filePath) else {
-            print("File isn't readable at: \(filePath)")
-            return []
-        }
-        
-        let visitorClasses = countVisitClasses(in: file)
-        return visitorClasses
+        let fileContent = try String(contentsOfFile: filePath, encoding: .utf8)
+        return countVisitClasses(fileContent: fileContent, filePath: filePath)
     }
 }
 

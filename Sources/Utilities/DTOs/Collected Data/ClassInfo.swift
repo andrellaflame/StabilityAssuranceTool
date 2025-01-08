@@ -8,8 +8,8 @@
 import Foundation
 
 /// Represents gathered information about a class.
-class ClassInfo {
-    var name: String
+class ClassInfo: DeclarationObservable {
+    var declaration: Declaration
     var functionCount = 0
     var functions: [FunctionInfo] = []
     var variables: [VariableInfo] = []
@@ -27,8 +27,8 @@ class ClassInfo {
     
     /// Initializes a new instance of `ClassInfo` with the given name.
     /// - Parameter name: The name of the class.
-    init(name: String) {
-        self.name = name
+    init(_ declaration: Declaration) {
+        self.declaration = declaration
     }
 }
 
@@ -38,7 +38,7 @@ extension ClassInfo {
         var xmlString = "--------------------------------------------\n"
         
         xmlString += "<class>\n"
-        xmlString += "  <name>\(self.name)</name>\n"
+        xmlString += "  <name>\(self.declaration.name)</name>\n"
         xmlString += "  <variableCount>\(self.variables.count)</variableCount>\n"
         xmlString += "  <functionCount>\(self.functionCount)</functionCount>\n"
         
@@ -57,7 +57,7 @@ extension ClassInfo {
             let calledFunctions = function.calledFunctions
             
             xmlString += "  <function>\n"
-            xmlString += "      <name>\(function.name)</name>\n"
+            xmlString += "      <name>\(function.declaration.name)</name>\n"
             xmlString += "      <signature>\(function.signature)</signature>\n"
             xmlString += "      <scope>\n\(function.scope)\n      </scope>\n"
             xmlString += "      <functionCalls>\(function.functionCalls)</functionCalls>\n"
@@ -73,7 +73,7 @@ extension ClassInfo {
         
         for variable in self.variables {
             xmlString += "  <variable>\n"
-            xmlString += "      <name>\(variable.name)</name>\n"
+            xmlString += "      <name>\(variable.declaration.name)</name>\n"
             xmlString += "      <declaration>\(variable.declaration)\n      </declaration>\n"
             xmlString += "  </variable>\n"
         }
