@@ -6,7 +6,6 @@ import PackageDescription
 let package = Package(
     name: "StabilityAssuranceTool",
     platforms: [
-        .iOS(.v13),
         .macOS(.v10_15),
     ],
     products: [
@@ -17,8 +16,6 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-syntax.git", from: "600.0.1"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .executableTarget(
             name: "StabilityAssuranceTool",
             dependencies: [
