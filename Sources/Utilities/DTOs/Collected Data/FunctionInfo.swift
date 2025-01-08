@@ -8,8 +8,8 @@
 import Foundation
 
 /// Represents information about a function.
-class FunctionInfo {
-    var name: String
+class FunctionInfo: DeclarationObservable {
+    var declaration: Declaration
     var signature: String
     var scope: String
     var functionCalls: Int
@@ -21,8 +21,8 @@ class FunctionInfo {
     ///   - signature: The signature of the function.
     ///   - scope: The scope of the function.
     ///   - functionCalls: The number of times the function is called.
-    init(name: String, signature: String, scope: String, functionCalls: Int) {
-        self.name = name
+    init(declaration: Declaration, signature: String, scope: String, functionCalls: Int) {
+        self.declaration = declaration
         self.signature = signature
         self.scope = scope
         self.functionCalls = functionCalls

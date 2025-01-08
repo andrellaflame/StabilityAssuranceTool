@@ -58,7 +58,9 @@ struct SATReportWriter {
             
             detailedDescription.append(
                 ClassDescription(
-                    name: classInstance.name,
+                    name: classInstance.declaration.name,
+                    filePath: classInstance.declaration.filePath,
+                    line: classInstance.declaration.line,
                     WMCResult: WMCResult,
                     RFCResult: RFCResult,
                     NOCResult: NOCResult
@@ -113,7 +115,9 @@ struct SATReportWriter {
     private func generateClassDescriptions() -> [ClassDescription] {
         return evaluatedData.map { classInstance in
             ClassDescription(
-                name: classInstance.name,
+                name: classInstance.declaration.name,
+                filePath: classInstance.declaration.filePath,
+                line: classInstance.declaration.line,
                 WMCResult: generateComment(metric: "WMC", metricValue: classInstance.WMC.0, mark: classInstance.WMC.1),
                 RFCResult: generateComment(metric: "RFC", metricValue: classInstance.RFC.0, mark: classInstance.RFC.1),
                 NOCResult: generateComment(metric: "NOC", metricValue: classInstance.NOC.0, mark: classInstance.NOC.1)
@@ -181,6 +185,7 @@ struct SATReportWriter {
         let detailedDescription = data.detailedDescription.map { classDescription in
             """
             • Class \(classDescription.name)
+            File path: \(classDescription.filePath), line: \(classDescription.line)
             \(classDescription.WMCResult)
             \(classDescription.RFCResult)
             \(classDescription.NOCResult)

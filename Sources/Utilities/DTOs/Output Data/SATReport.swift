@@ -48,6 +48,12 @@ struct ClassDescription {
     /// The name of the class.
     let name: String
     
+    /// The file path of the file where class is declared.
+    let filePath: String
+    
+    /// The line of code where class is declared.
+    let line: Int
+    
     /// The result of the Weighted Method Count (WMC) metric for the class.
     let WMCResult: String
     

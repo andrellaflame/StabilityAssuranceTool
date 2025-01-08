@@ -8,16 +8,16 @@
 import Foundation
 
 /// Represents information about a variable.
-class VariableInfo {
-    var name: String
-    var declaration: String
+class VariableInfo: DeclarationObservable {
+    var declaration: Declaration
+    var description: String
     
     /// Initializes a new instance of `VariableInfo` with the given parameters.
     /// - Parameters:
-    ///   - name: The name of the variable.
     ///   - declaration: The declaration of the variable.
-    init(name: String, declaration: String) {
-        self.name = name
+    ///   - description: The description of the variable.
+    init(declaration: Declaration, description: String) {
         self.declaration = declaration
+        self.description = description
     }
 }

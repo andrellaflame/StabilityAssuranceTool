@@ -10,41 +10,61 @@ import SwiftSyntax
 
 /// Analyzes Swift code syntax to extract class, function, and variable information.
 class CodeAnalyzer: SyntaxVisitor {
-
+    private let sourceFile: SourceFileSyntax
+    private let filePath: String
     /// Stack to keep track of class information during traversal.
-    var classStack: [ClassInfo] = []
+    public var classStack: [ClassInfo] = []
     
-    /// Total count of classes encountered during traversal.
-    var classCount = 0
-
-     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
-         let className = node.name.text
-         let classInfo = ClassInfo(name: className)
-         
-         // Extracting inheritance information if available
-         if let inheritanceClause = node.inheritanceClause {
-             let baseClasses = inheritanceClause
-                 .inheritedTypes
-                 .map { $0.description.trimmingCharacters(in: .whitespacesAndCommas) }
-                     
-             classInfo.classParents = baseClasses
-         }
-         
-         classStack.append(classInfo)
-         
-         return super.visit(node)
-     }
+    init(sourceFile: SourceFileSyntax, filePath: String, viewMode: SyntaxTreeViewMode) {
+        self.sourceFile = sourceFile
+        self.filePath = filePath
+        super.init(viewMode: viewMode)
+    }
+    
+    override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
+        let location = node.positionAfterSkippingLeadingTrivia.location(in: sourceFile)
+        
+        let classInfo = ClassInfo(
+            Declaration(
+                name: node.name.text,
+                filePath: filePath,
+                line: location.line
+            )
+        )
+        
+        // Extracting inheritance information if available
+        if let inheritanceClause = node.inheritanceClause {
+            let baseClasses = inheritanceClause
+                .inheritedTypes
+                .map { $0.description.trimmingCharacters(in: .whitespacesAndCommas) }
+            
+            classInfo.classParents = baseClasses
+        }
+        
+        classStack.append(classInfo)
+        
+        return super.visit(node)
+    }
     
     override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
         guard let currentClass = classStack.last else {
             return .skipChildren
         }
         
-        let functionName = node.name.text
+        let location = node.positionAfterSkippingLeadingTrivia.location(in: sourceFile)
         let functionSignature = node.signature.description
         let functionScope = "\(node.description)"
         
-        let functionInfo = FunctionInfo(name: functionName, signature: functionSignature, scope: functionScope, functionCalls: 0)
+        let functionInfo = FunctionInfo(
+            declaration: Declaration(
+                name: node.name.text,
+                filePath: filePath,
+                line: location.line
+            ),
+            signature: functionSignature,
+            scope: functionScope,
+            functionCalls: 0
+        )
         
         currentClass.functions.append(functionInfo)
         currentClass.functionCount += 1
@@ -72,14 +92,29 @@ class CodeAnalyzer: SyntaxVisitor {
         
         for binding in node.bindings {
             if let pattern = binding.pattern.as(IdentifierPatternSyntax.self) {
-                let variableName = pattern.identifier.text
+                let location = node.positionAfterSkippingLeadingTrivia.location(in: sourceFile)
                 let variableDeclaration = node.description
-                let variableInfo = VariableInfo(name: variableName, declaration: variableDeclaration)
+                
+                let variableInfo = VariableInfo(
+                    declaration: Declaration(
+                        name: pattern.identifier.text,
+                        filePath: filePath,
+                        line: location.line
+                    ),
+                    description: variableDeclaration
+                )
                 
                 currentClass.variables.append(variableInfo)
             }
         }
         
         return .skipChildren
+    }
+}
+
+private extension AbsolutePosition {
+    func location(in sourceFile: SourceFileSyntax) -> SourceLocation {
+        let sourceLocationConverter = SourceLocationConverter(fileName: "<file>", tree: sourceFile)
+        return sourceLocationConverter.location(for: self)
     }
 }
