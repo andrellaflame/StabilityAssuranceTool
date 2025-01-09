@@ -44,11 +44,11 @@ dependencies: [
 >
 > ```$ swift run sat test```
 
-![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/testCommandExample.jpg?raw=true)
+[//]: # "[alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/testCommandExample.jpg?raw=true)"
 
 > ```$ swift run sat evaluate```
 
-![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/evaluateCommandExample.jpg?raw=true)
+[//]: # "![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/evaluateCommandExample.jpg?raw=true)"
 
 ## Documentation
 
