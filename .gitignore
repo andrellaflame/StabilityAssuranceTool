@@ -1,8 +1,17 @@
+# Ignore system files
 .DS_Store
+
+# Ignore build and package manager files
 /.build
 /Packages
 xcuserdata/
 DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+# Ignore network-related configuration
 .netrc
+
+# Ignore private scripts in bin/ directory
+bin/PrivateScripts/
+Plugins/

@@ -34,20 +34,6 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         
         // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
-        @Option(
-            help:
-                """
-                The output format type for the overall stability report.
-                
-                --output console | printed console output for generated product stability assurance check.
-                
-                --output html | auto-generaged HTML page for the product stability assurance check report.
-                
-                NOTE: In order to save generated product stability assurance report to a file, add output file path after input directory path
-                """
-        )
-        
-        var output: OutputFormat = .console
         
         /// Evaluates overall stability of the product at passed data and path
         /// - Parameter path: `String` filePath value for the product
@@ -157,7 +143,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
                 projectScale: scale,
                 evaluatedMetrics: evaluatedMetrics,
                 evaluatedData: evaluatedResult,
-                outputFormat: output
+                outputFormat: options.output
             )
         }
         
@@ -178,40 +164,10 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             let report = evaluateProduct(
                 at: path,
                 for: visitorClasses,
-                type: output
+                type: options.output
             ).report
             
-            switch output {
-            case .console:
-                print(report)
-            case .html:
-                let tempDirectory = FileManager.default.temporaryDirectory
-                let htmlFilePath = tempDirectory.appendingPathComponent("report.html")
-
-                do {
-                    try report.write(to: htmlFilePath, atomically: true, encoding: .utf8)
-                } catch {
-                    print("Error writing HTML file: \(error)")
-                }
-
-                // Step 3: Open the HTML file in the default web browser
-#if canImport(AppKit)
-                if NSWorkspace.shared.open(htmlFilePath) {
-                    print("Report is opened in HTML file successfully.")
-                } else {
-                    print("Failed to open HTML file.")
-                }
-#else
-                print("NSWorkspace is not available.")
-#endif
-            case .file(let filePath):
-                do {
-                    try report.write(to: URL(fileURLWithPath: filePath), atomically: true, encoding: .utf8)
-                    print("Report written to file at \(filePath).")
-                } catch {
-                    print("Error writing file: \(error)")
-                }
-            }
+            options.output.writeReport(report)
         }
     }
 }

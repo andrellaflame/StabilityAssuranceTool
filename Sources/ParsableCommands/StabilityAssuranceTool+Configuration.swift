@@ -80,18 +80,6 @@ struct StabilityAssuranceTool: ParsableCommand {
     }
 }
 
-// MARK: ParsableArguments
-extension StabilityAssuranceTool {
-    /// Options for the Stability Assurance Tool.
-    struct Options: ParsableArguments {
-        @Flag(name: .long, help: "Show extra logging for debugging purposes")
-        private var verbose = false
-
-        @Argument(help: "The file path for data collection.")
-        var inputFile: String
-    }
-}
-
 // MARK: Test Parsable Command
 extension StabilityAssuranceTool {
     /// Test command to demonstrate SPM tool functionality.
@@ -102,7 +90,8 @@ extension StabilityAssuranceTool {
         )
         
         mutating func run() throws {
-            print("Woo, test command is working!")
+            let report = "Woo, test command is working!"
+            options.
         }
     }
 }
