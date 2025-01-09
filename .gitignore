@@ -13,5 +13,4 @@ DerivedData/
 .netrc
 
 # Ignore private scripts in bin/ directory
-./bin/PrivateScripts
-./Plugins/
+bin/PrivateScripts/

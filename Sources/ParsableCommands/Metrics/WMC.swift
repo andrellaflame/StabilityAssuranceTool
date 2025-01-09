@@ -10,7 +10,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
-extension StabilityAssuranceTool.StabilityAssuranceMark {
+extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     /// WMC | Weighted Method per Class stability metric
     ///
     /// WMC is measures the sum of complexity of the methods in a class.
@@ -83,7 +83,10 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.inputFile
+            guard let path = options.inputFile else {
+                throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
+            }
+            
             print("Trying to use WMC metric at: \(path)")
             
             var visitorClasses: [ClassInfo] = []
@@ -111,7 +114,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             }
             
             let result = Double(round(average * 100) / 100)
-            print("\nWMC value: \(result)")
+            options.output.writeReport("\nWMC value for \(path): \(result)")
         }
     }
 }

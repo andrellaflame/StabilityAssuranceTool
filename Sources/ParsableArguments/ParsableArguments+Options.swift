@@ -5,6 +5,7 @@
 //  Created by Andrii Sulimenko on 2025-01-09.
 //
 
+import ArgumentParser
 import Foundation
 
 // MARK: ParsableArguments
@@ -15,7 +16,7 @@ extension StabilityAssuranceTool {
         private var verbose = false
 
         @Argument(help: "The file path for data collection.")
-        var inputFile: String
+        var inputFile: String?
         
         @Option(
             help:

@@ -10,7 +10,7 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
-extension StabilityAssuranceTool.StabilityAssuranceMark {
+extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     
     /// RFC | Response for Class stability metric
     ///
@@ -56,7 +56,10 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.inputFile
+            guard let path = options.inputFile else {
+                throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
+            }
+            
             print("Trying to use RFC metric at: \(path)")
             
             var visitorClasses: [ClassInfo] = []
@@ -73,7 +76,7 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
             let average = Double(totalRFC) / Double(evaluatedRFC.count)
             let result = Double(round(average * 100) / 100)
             
-            print("\nRFC value: \(result)")
+            options.output.writeReport("\nRFC value for \(path): \(result)")
         }
     }
 }

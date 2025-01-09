@@ -1,5 +1,5 @@
 //
-//  StabilityAssuranceCheck.swift
+//  StabilityAssuranceTool+Evaluation.swift
 //
 //
 //  Created by Andrii Sulimenko on 10.01.2024.
@@ -14,7 +14,7 @@ import AppKit
 #endif
 
 
-extension StabilityAssuranceTool.StabilityAssuranceMark {
+extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     /// Overall product stability mark
     ///
     /// This mark is evaluated using results of all metrics counted together for the project in passed directory. It uses predefined tables of values for particular metrics.
@@ -150,8 +150,11 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.inputFile
-            print("Trying to apply metrics to evaluate stability for: \(path)")
+            guard let path = options.inputFile else {
+                throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
+            }
+            
+            print("Attempting to apply metrics to evaluate stability for: \(path)")
             
             var visitorClasses: [ClassInfo] = []
             

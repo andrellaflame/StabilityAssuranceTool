@@ -11,7 +11,7 @@ import SwiftSyntax
 import SwiftParser
 
 
-extension StabilityAssuranceTool.StabilityAssuranceMark {
+extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     /// LOC | Lines of code metric
     ///
     /// This command counts the total number of lines of code in passed directory.
@@ -80,13 +80,19 @@ extension StabilityAssuranceTool.StabilityAssuranceMark {
         // MARK: - Metric run func
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
-            let path = options.inputFile
+            guard let path = options.inputFile else {
+                throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
+            }
+            
             print("Trying to count lines of code at: \(path)")
             
             let tupledResult = countLines(at: path)
-            tupledResult.printTuples { tuple in
-                return "    \(tuple.0) lines: \(tuple.1)"
-            }
+            
+            let report: String = tupledResult
+                .map { "    \($0.0) lines: \($0.1)\n" }
+                .joined()
+            
+            options.output.writeReport(report)
         }
     }
 }
