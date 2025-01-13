@@ -37,6 +37,12 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             case custom, unity
         }
         
+        // MARK: - Messages
+        /// Message for when the WMC value is accepted
+        static let acceptedMessage = "WMC is acceptable. Consider reviewing the number of methods in this class."
+        /// Message for when the WMC value is poor
+        static let poorMessage = "WMC is poor. Consider reducing method complexity or refactoring large classes."
+        
         // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         

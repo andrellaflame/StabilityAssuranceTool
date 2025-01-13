@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - SATMark value
 
-/// `SATMark` enum for evaluated product.
+/// `SATMark` protocol for evaluated product metrics.
 enum SATMark: String {
     case unowned, good, accepted, poor
 }

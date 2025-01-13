@@ -30,6 +30,12 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 """
         )
         
+        // MARK: - Messages
+        /// Message for when the metric value is accepted
+        static let acceptedMessage = "The NOC value is within the accepted range, consider reviewing your class hierarchy breadth."
+        /// Message for when the metric value is poor
+        static let poorMessage = "The NOC value is poor, indicating a potential issue with class hierarchy breadth."
+        
         // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         

@@ -35,108 +35,111 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
         
+        /// Calculate average value of each metric
+        private func calculateAverage(_ values: [Int]) -> Double {
+            Double(values.reduce(0, +)) / Double(values.count)
+        }
+        
+        /// Evaluates individual metrics according to the thresholds boundaries
+        private func evaluateMetric(value: Double, thresholds: (good: Double, accepted: Double)) -> SATMark {
+            if value <= thresholds.good {
+                return .good
+            } else if value <= thresholds.accepted {
+                return .accepted
+            }
+            return .poor
+        }
+        
         /// Evaluates overall stability of the product at passed data and path
         /// - Parameter path: `String` filePath value for the product
         /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
         /// - Parameter type: `OutputFormat` format option for the overall mark output
         /// - Returns: `SATReportWriter` object for stability evaluation report
-        private func evaluateProduct(at path: String, for data: [ClassInfo], type: OutputFormat) -> SATReportWriter {
+        private func evaluateProduct(at path: String, for data: [ClassInfo], type: OutputFormat) throws -> SATReportWriter {
             // MARK: Evaluating metrics
             let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
             let evaluatedRFC = RFC().evaluateRFC(for: evaluatedWMC)
             let evaluatedResult = NOC().evaluateNOC(for: evaluatedRFC)
             
-            var evaluatedMetrics: [(String, any Numeric, SATMark)] = []
-            var scale: ProjectSize = .unowned
-            
-            // Allowed values for metrics that are directly dependant on the scale of the product
-            var allowedValueNOCPerClass: Double = 0
-            
-            // Total WMC
-            let totalWMC = evaluatedResult.reduce(0) { $0 + $1.WMC.0 }
-            let averageWMC: Double = Double(totalWMC) / Double(evaluatedWMC.count)
-            let averageRoundedValueWMC: Double = Double(round(averageWMC * 100) / 100)
+            /// Total WMC
+            let averageWMC = calculateAverage(evaluatedResult.map { $0.WMC.0 })
             var classesWithHighWMC: Double = 0
-            
-            // Total RFC
-            let totalRFC = evaluatedResult.reduce(0) { $0 + $1.RFC.0 }
-            let averageRFC = Double(totalRFC) / Double(evaluatedResult.count)
-            let averageRoundedValueRFC: Double = Double(round(averageRFC * 100) / 100)
-            
-            // Total NOC
-            let averageNOC: Double = evaluatedResult.reduce(0.0) {
-                $0 + Double($1.NOC.0) / Double(evaluatedResult.count)
-            }
-            let averageRoundedValueNOC: Double = Double(round(averageNOC * 100) / 100)
-            
-            // Total LOC
+            /// Total RFC
+            let averageRFC = calculateAverage(evaluatedResult.map { $0.RFC.0 })
+            /// Total NOC
+            let averageNOC = calculateAverage(evaluatedResult.map { $0.NOC.0 })
+            /// Total LOC
             let linesCount = LinesCounter().countLines(at: path).last?.0 ?? 0
+            /// Project scale
+            let scale = ProjectSize.determineScale(for: data.count)
+            
+            /// Allowed NOC per class
+            ///
+            /// Allowed values for metrics that are directly dependant on the scale of the product
+            let allowedValueNOCPerClass: Double = {
+                return switch scale {
+                case .small:
+                    Double(data.count) * 0.1
+                case .medium:
+                    Double(data.count) * 0.3
+                case .large:
+                    Double(data.count) * 0.5
+                default:
+                    0.0
+                }
+            }()
+            
+            
+            // Evaluated metrics per class
+            var evaluatedMetrics: [(String, any Numeric, SATMark)] = []
             evaluatedMetrics.append(("LOC", linesCount, .unowned))
             
-            switch data.count {
-            case let value where value < 50:
-                scale = .small
-                allowedValueNOCPerClass = Double(data.count) * 0.1
-            case let value where value < 200:
-                scale = .medium
-                allowedValueNOCPerClass = Double(data.count) * 0.3
-            default:
-                scale = .large
-                allowedValueNOCPerClass = Double(data.count) * 0.5
-            }
-            
+            // Thresholds for each metric
+            let WMCThresholds = (good: averageWMC, accepted: averageWMC * 1.1)
+            let RFCThresholds = (good: 50.0, accepted: 100.0)
+            let NOCThresholds = (good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
             
             for classInstance in evaluatedResult {
-                switch Double(classInstance.NOC.0) {
-                case let NOCvalue where NOCvalue < allowedValueNOCPerClass:
-                    classInstance.NOC.1 = .good
-                case let NOCvalue where NOCvalue < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1:
-                    classInstance.NOC.1 = .accepted
-                default:
-                    classInstance.NOC.1 = .poor
-                }
-                
-                switch Double(classInstance.WMC.0) {
-                case let WMCvalue where WMCvalue <= averageWMC:
-                    classInstance.WMC.1 = .good
-                case let WMCvalue where WMCvalue < averageWMC + averageWMC * 0.1:
-                    classInstance.WMC.1 = .accepted
-                    classesWithHighWMC += 1
-                default:
-                    classInstance.WMC.1 = .poor
+                /// Evaluate NOC
+                classInstance.NOC.1 = evaluateMetric(value: Double(classInstance.NOC.0), thresholds: NOCThresholds)
+                /// Evaluate WMC
+                classInstance.WMC.1 = evaluateMetric(value: Double(classInstance.WMC.0), thresholds: WMCThresholds)
+                /// Evaluate RFC
+                classInstance.RFC.1 = evaluateMetric(value: Double(classInstance.RFC.0), thresholds: RFCThresholds)
+                // Increment high WMC classes for overall mark
+                if classInstance.WMC.1 == .poor {
                     classesWithHighWMC += 1
                 }
                 
-                switch Double(classInstance.RFC.0) {
-                case let RFCvalue where RFCvalue < 50:
-                    classInstance.RFC.1 = .good
-                case let RFCvalue where RFCvalue < 100:
-                    classInstance.RFC.1 = .accepted
-                default:
-                    classInstance.RFC.1 = .poor
+                // Add editor messages for script-based execution
+                if case .file(_) = options.output {
+                    // NOC Message
+                    if classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
+                        let NOCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage)
+                        print(NOCMessage)
+                    }
+                    // WMC Message
+                    if classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
+                        let WMCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage)
+                        print(WMCMessage)
+                    }
+                    // RFC Message
+                    if classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
+                        let RFCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage)
+                        print(RFCMessage)
+                    }
                 }
             }
             
             // Marking metrics
-            let WMCmark: SATMark =
-            classesWithHighWMC <= Double(evaluatedResult.count) * 0.1 ? .good:
-            classesWithHighWMC <= Double(evaluatedResult.count) * 0.3 ? .accepted:
-                .poor
-            
-            let NOCmark: SATMark =
-            averageNOC < allowedValueNOCPerClass ? .good:
-            averageNOC < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1 ? .accepted:
-                .poor
-            
-            let RFCmark: SATMark =
-            averageRFC < 50 ? .good:
-            averageRFC < 100 ? .accepted:
-                .poor
+            let WMCmark: SATMark = classesWithHighWMC <= Double(evaluatedResult.count) * 0.1 ? .good : classesWithHighWMC <= Double(evaluatedResult.count) * 0.3 ? .accepted : .poor
+            let NOCmark: SATMark = averageNOC < allowedValueNOCPerClass ? .good : averageNOC < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1 ? .accepted : .poor
+            let RFCmark: SATMark = averageRFC < 50 ? .good : averageRFC < 100 ? .accepted : .poor
             
             // Appending metrics results
-            evaluatedMetrics.append(("WMC", averageRoundedValueWMC, WMCmark))
-            evaluatedMetrics.append(("NOC", averageRoundedValueNOC, NOCmark))
-            evaluatedMetrics.append(("RFC", averageRoundedValueRFC, RFCmark))
+            evaluatedMetrics.append(("WMC", averageWMC, WMCmark))
+            evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
+            evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
             
             return SATReportWriter(
                 projectDirectory: path,
@@ -164,7 +167,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
             
-            let report = evaluateProduct(
+            let report = try evaluateProduct(
                 at: path,
                 for: visitorClasses,
                 type: options.output
