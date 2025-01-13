@@ -13,3 +13,13 @@ import Foundation
 enum ProjectSize: String {
     case unowned, small, medium, large
 }
+
+extension ProjectSize {
+    static func determineScale(for classCount: Int) -> ProjectSize {
+        switch classCount {
+        case ..<50: return .small
+        case ..<200: return .medium
+        default: return .large
+        }
+    }
+}
