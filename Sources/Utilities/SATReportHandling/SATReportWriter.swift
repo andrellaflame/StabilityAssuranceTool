@@ -302,6 +302,6 @@ extension SATReportWriter {
     ///   - message: The message or recommendation for the class.
     /// - Returns: A formatted string representing the issue message.
     static func formatIssueMessage(_ classInstance: ClassInfo, message: String) -> String {
-        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): warning: \(classInstance.declaration.name) \(message)"
+        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): warning: \(classInstance.declaration.name) class \(message)"
     }
 }

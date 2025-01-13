@@ -32,9 +32,9 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         
         // MARK: - Messages
         /// Message for when the RFC value is accepted
-        static let acceptedMessage = "RFC is acceptable. Consider reviewing your class response complexity."
+        static let acceptedMessage = "RFC metric value is within the accepted range. Consider reviewing your class response complexity."
         /// Message for when the RFC value is poor
-        static let poorMessage = "RFC is poor. Consider simplifying class methods or reducing interdependencies."
+        static let poorMessage = "RFC metric is poor. Consider simplifying class methods or reducing interdependencies."
         
         // MARK: - Command Options
         @OptionGroup var options: StabilityAssuranceTool.Options
