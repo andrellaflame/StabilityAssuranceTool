@@ -141,6 +141,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
             evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
             
+            print("Evaluation completed for: \(path)")
+            
             return SATReportWriter(
                 projectDirectory: path,
                 projectScale: scale,
