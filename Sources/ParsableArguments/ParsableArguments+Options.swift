@@ -7,6 +7,7 @@
 
 import ArgumentParser
 import Foundation
+import Yams
 
 // MARK: ParsableArguments
 extension StabilityAssuranceTool {
@@ -17,6 +18,9 @@ extension StabilityAssuranceTool {
 
         @Argument(help: "The file path for data collection.")
         var inputFile: String?
+        
+        @Option(name: .long, help: "Path to the YAML configuration file.")
+        var config: String?
         
         @Option(
             help:
@@ -33,5 +37,26 @@ extension StabilityAssuranceTool {
                 """
         )
         var output: OutputFormat = .console
+    }
+}
+
+
+/// YAML configuration parsing
+extension ParsableArguments {
+    static func loadConfiguration(from path: String) -> SATConfiguration? {
+        guard FileManager.default.fileExists(atPath: path) else {
+            print("Configuration file not found at \(path). Using default settings.")
+            return nil
+        }
+        do {
+            let yamlString = try String(contentsOfFile: path, encoding: .utf8)
+            let configuration = try YAMLDecoder().decode(SATConfiguration.self, from: yamlString)
+            
+            print("YAML configuration retrieved successfuly: \(configuration)")
+            return configuration
+        } catch {
+            print("Error parsing YAML configuration: \(error)")
+            return nil
+        }
     }
 }

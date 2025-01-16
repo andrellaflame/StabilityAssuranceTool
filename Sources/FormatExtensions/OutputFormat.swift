@@ -14,7 +14,7 @@ import AppKit
 // MARK: - Output Format
 
 /// Enum defining different output formats.
-enum OutputFormat {
+enum OutputFormat: Codable {
     /// Output format for console.
     case console
     /// Output format for HTML.
@@ -24,7 +24,7 @@ enum OutputFormat {
 }
 
 extension OutputFormat: ExpressibleByArgument {
-    init?(argument: String) {
+    init(argument: String) {
         if argument == "console" {
             self = .console
         } else if argument == "html" {

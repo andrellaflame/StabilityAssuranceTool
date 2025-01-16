@@ -1,15 +1,14 @@
 //
 //  SATMark.swift
+//  StabilityAssuranceTool
 //
-//
-//  Created by Andrii Sulimenko on 11.01.2024.
+//  Created by Andrii Sulimenko on 2025-01-16.
 //
 
 import Foundation
 
 // MARK: - SATMark value
-
-/// `SATMark` protocol for evaluated product metrics.
-enum SATMark: String {
+/// `SATMark` enum for evaluated product metrics.
+enum SATMark: String, Codable {
     case unowned, good, accepted, poor
 }
