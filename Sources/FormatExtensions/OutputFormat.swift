@@ -24,7 +24,7 @@ enum OutputFormat: Codable {
 }
 
 extension OutputFormat: ExpressibleByArgument {
-    init?(argument: String) {
+    init(argument: String) {
         if argument == "console" {
             self = .console
         } else if argument == "html" {
