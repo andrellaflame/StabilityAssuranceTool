@@ -162,7 +162,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             if let configurationPath = options.config {
                 print("Loading configuration from \(configurationPath)...")
                 if let config = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
-                    options.output = config.output
+//                    options.output = config.output
+                    print(config)
                 } else {
                     throw StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
                 }
