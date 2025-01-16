@@ -158,9 +158,15 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let RFCmark: SATMark = averageRFC < 50 ? .good : averageRFC < 100 ? .accepted : .poor
             
             // Appending metrics results
-            evaluatedMetrics.append(("WMC", averageWMC, WMCmark))
-            evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
-            evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
+            if metricsToEvaluate.contains("WMC") {
+                evaluatedMetrics.append(("WMC", averageWMC, WMCmark))
+            }
+            if metricsToEvaluate.contains("NOC") {
+                evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
+            }
+            if metricsToEvaluate.contains("RFC") {
+                evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
+            }
             
             print("Evaluation completed for: \(path)")
             
