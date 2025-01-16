@@ -8,5 +8,5 @@
 import Foundation
 
 struct SATConfiguration: Codable {
-    let output: OutputFormat
+    let output: String
 }
