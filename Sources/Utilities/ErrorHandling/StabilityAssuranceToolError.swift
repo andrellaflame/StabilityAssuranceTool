@@ -11,6 +11,7 @@ enum StabilityAssuranceToolError: Error {
     case missingAttributeArgument(String)
     case invalidFilepath(String)
     case invalidData(String)
+    case invalidConfiguration(String)
 }
 
 /// StabilityAssuranceToolError service errors localized description
@@ -23,6 +24,8 @@ extension StabilityAssuranceToolError: LocalizedError {
             return NSLocalizedString("File: \(filepath) not found. Verify passed arguments", comment: "Invalid Filepath")
         case .invalidData(let details):
             return NSLocalizedString("Passed data for evaluation is missing or invalid. Details: \(details).", comment: "Invalid Evaluation Data")
+        case .invalidConfiguration(let details):
+            return NSLocalizedString("Passed configuration is invalid. Details: \(details).", comment: "Invalid Configuration Data")
         }
     }
 }

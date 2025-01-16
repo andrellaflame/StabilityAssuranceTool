@@ -159,7 +159,16 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
             }
             
-            print("Attempting to apply metrics to evaluate stability for: \(path)")
+            if let configurationPath = options.config {
+                print("Loading configuration from \(configurationPath)...")
+                if let config = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
+                    options.output = config.output
+                } else {
+                    throw StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
+                }
+            }
+            
+            print("Attempting to apply metrics to evaluate stability for: \(path)...")
             
             var visitorClasses: [ClassInfo] = []
             

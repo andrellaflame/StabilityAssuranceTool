@@ -14,7 +14,7 @@ import AppKit
 // MARK: - Output Format
 
 /// Enum defining different output formats.
-enum OutputFormat {
+enum OutputFormat: Codable {
     /// Output format for console.
     case console
     /// Output format for HTML.
