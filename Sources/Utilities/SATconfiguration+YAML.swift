@@ -9,4 +9,11 @@ import Foundation
 
 struct SATConfiguration: Codable {
     let output: String
+    let enabledMetrics: [String]?
+    let thresholds: [String: MetricThresholds]?
+}
+
+struct MetricThresholds: Codable {
+    let good: Double
+    let accepted: Double
 }

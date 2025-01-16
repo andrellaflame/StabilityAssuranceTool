@@ -41,10 +41,11 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         }
         
         /// Evaluates individual metrics according to the thresholds boundaries
-        private func evaluateMetric(value: Double, thresholds: (good: Double, accepted: Double)) -> SATMark {
+        private func evaluateMetric(value: Double, thresholds: MetricThresholds) -> SATMark {
             if value <= thresholds.good {
                 return .good
             } else if value <= thresholds.accepted {
+                
                 return .accepted
             }
             return .poor
@@ -53,13 +54,33 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         /// Evaluates overall stability of the product at passed data and path
         /// - Parameter path: `String` filePath value for the product
         /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
-        /// - Parameter type: `OutputFormat` format option for the overall mark output
+        /// - Parameter metrics: Enabled metrics for product evaluation. Defaults to all metrics use
+        /// - Parameter thresholds: Custom thresholds for the enabled metrics in product evaluation. Defaults to predefined metrics logic
         /// - Returns: `SATReportWriter` object for stability evaluation report
-        private func evaluateProduct(at path: String, for data: [ClassInfo], type: OutputFormat) throws -> SATReportWriter {
-            // MARK: Evaluating metrics
-            let evaluatedWMC = WMC().evaluateWMC(for: data, type: .custom)
-            let evaluatedRFC = RFC().evaluateRFC(for: evaluatedWMC)
-            let evaluatedResult = NOC().evaluateNOC(for: evaluatedRFC)
+        private func evaluateProduct(
+            at path: String,
+            for data: [ClassInfo],
+            metrics: [String],
+            thresholds: [String: MetricThresholds]
+        ) throws -> SATReportWriter {
+            /// Default metrics if none are provided
+            let metricsToEvaluate = metrics.isEmpty ? ["WMC", "RFC", "NOC"] : metrics
+            
+            // MARK: Evaluating metrics based on provided/default configuration
+            /// Evaluated metric results
+            var evaluatedResult = [ClassInfo]()
+            /// WMC metric calculation
+            if metricsToEvaluate.contains("WMC") {
+                evaluatedResult = WMC().evaluateWMC(for: data, type: .custom)
+            }
+            /// RFC metric calculation
+            if metricsToEvaluate.contains("RFC") {
+                evaluatedResult = RFC().evaluateRFC(for: evaluatedResult.isEmpty ? data : evaluatedResult)
+            }
+            /// NOC metric calculation
+            if metricsToEvaluate.contains("NOC") {
+                evaluatedResult = NOC().evaluateNOC(for: evaluatedResult.isEmpty ? data : evaluatedResult)
+            }
             
             /// Total WMC
             let averageWMC = calculateAverage(evaluatedResult.map { $0.WMC.0 })
@@ -90,14 +111,14 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             }()
             
             
-            // Evaluated metrics per class
+            /// Evaluated metrics per class
             var evaluatedMetrics: [(String, any Numeric, SATMark)] = []
             evaluatedMetrics.append(("LOC", linesCount, .unowned))
             
-            // Thresholds for each metric
-            let WMCThresholds = (good: averageWMC, accepted: averageWMC * 1.1)
-            let RFCThresholds = (good: 50.0, accepted: 100.0)
-            let NOCThresholds = (good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
+            /// Thresholds for each metric
+            let WMCThresholds = thresholds["WMC"] ?? MetricThresholds(good: averageWMC, accepted: averageWMC * 1.1)
+            let RFCThresholds = thresholds["RFC"] ?? MetricThresholds(good: 50.0, accepted: 100.0)
+            let NOCThresholds = thresholds["NOC"] ?? MetricThresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
             
             for classInstance in evaluatedResult {
                 /// Evaluate NOC
@@ -114,17 +135,17 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 // Add editor messages for script-based execution
                 if case .file(_) = options.output {
                     // NOC Message
-                    if classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
+                    if metricsToEvaluate.contains("NOC"), classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
                         let NOCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage)
                         print(NOCMessage)
                     }
                     // WMC Message
-                    if classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
+                    if metricsToEvaluate.contains("WMC"), classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
                         let WMCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage)
                         print(WMCMessage)
                     }
                     // RFC Message
-                    if classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
+                    if metricsToEvaluate.contains("RFC"), classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
                         let RFCMessage = SATReportWriter.formatIssueMessage(classInstance, message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage)
                         print(RFCMessage)
                     }
@@ -137,9 +158,15 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let RFCmark: SATMark = averageRFC < 50 ? .good : averageRFC < 100 ? .accepted : .poor
             
             // Appending metrics results
-            evaluatedMetrics.append(("WMC", averageWMC, WMCmark))
-            evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
-            evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
+            if metricsToEvaluate.contains("WMC") {
+                evaluatedMetrics.append(("WMC", averageWMC, WMCmark))
+            }
+            if metricsToEvaluate.contains("NOC") {
+                evaluatedMetrics.append(("NOC", averageNOC, NOCmark))
+            }
+            if metricsToEvaluate.contains("RFC") {
+                evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
+            }
             
             print("Evaluation completed for: \(path)")
             
@@ -159,10 +186,16 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
             }
             
+            /// Configurable options
+            var enabledMetrics = [String]()
+            var thresholds = [String: MetricThresholds]()
+            
             if let configurationPath = options.config {
                 print("Loading configuration from \(configurationPath) ...")
                 if let config = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
                     options.output = OutputFormat(argument: config.output)
+                    enabledMetrics = config.enabledMetrics ?? []
+                    thresholds = config.thresholds ?? [:]
                 } else {
                     throw StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
                 }
@@ -181,7 +214,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let report = try evaluateProduct(
                 at: path,
                 for: visitorClasses,
-                type: options.output
+                metrics: enabledMetrics,
+                thresholds: thresholds
             ).report
             
             options.output.writeReport(report)
