@@ -140,7 +140,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 // Add editor messages for script-based execution
                 if case .file(_) = options.output {
                     // NOC Message
-                    if metricsToEvaluate.contains("NOC") {
+                    if metricsToEvaluate.contains("NOC"), classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
                         let NOCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
                             message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage,
@@ -151,7 +151,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                         print(NOCMessage)
                     }
                     // WMC Message
-                    if metricsToEvaluate.contains("WMC") {
+                    if metricsToEvaluate.contains("WMC"), classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
                         let WMCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
                             message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage,
@@ -162,7 +162,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                         print(WMCMessage)
                     }
                     // RFC Message
-                    if metricsToEvaluate.contains("RFC") {
+                    if metricsToEvaluate.contains("RFC"), classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
                         let RFCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
                             message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage,

@@ -319,5 +319,4 @@ extension SATReportWriter {
         
         return "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severityLevel.rawValue): \(classInstance.declaration.name) class \(message)"
     }
-
 }

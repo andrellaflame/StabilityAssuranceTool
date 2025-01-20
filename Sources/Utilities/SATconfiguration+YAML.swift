@@ -14,8 +14,8 @@ struct SATConfiguration: Codable {
 }
 
 struct MetricConfiguration: Codable {
-    let thresholds: Thresholds
-    let severity: Severity
+    let thresholds: Thresholds?
+    let severity: Severity?
 }
 
 struct Thresholds: Codable {
@@ -24,8 +24,8 @@ struct Thresholds: Codable {
 }
 
 struct Severity: Codable {
-    var poor: MetricSeverity?       = .warning
-    var acceptable: MetricSeverity? = .warning
+    var poor: MetricSeverity
+    var acceptable: MetricSeverity
 }
 
 enum MetricSeverity: String, Codable {
