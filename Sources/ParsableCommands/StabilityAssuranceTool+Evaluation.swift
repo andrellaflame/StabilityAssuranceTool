@@ -63,10 +63,10 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 severity: severity ?? .warning
             )
             
+            print(formattedMessage)
+            
             if severity == .error {
-                fatalError(formattedMessage)
-            } else {
-                print(formattedMessage)
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit()
             }
         }
         
