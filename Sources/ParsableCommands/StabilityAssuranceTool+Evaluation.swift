@@ -143,9 +143,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                     if metricsToEvaluate.contains("NOC"), classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
                         let NOCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
-                            message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage,
-                            mark: classInstance.NOC.1,
-                            severity: NOCSeverity
+                            message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage
                         )
                         
                         print(NOCMessage)
@@ -154,9 +152,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                     if metricsToEvaluate.contains("WMC"), classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
                         let WMCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
-                            message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage,
-                            mark: classInstance.WMC.1,
-                            severity: WMCSeverity
+                            message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage
                         )
                         
                         print(WMCMessage)
@@ -165,9 +161,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                     if metricsToEvaluate.contains("RFC"), classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
                         let RFCMessage = SATReportWriter.formatIssueMessage(
                             classInstance,
-                            message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage,
-                            mark: classInstance.RFC.1,
-                            severity: RFCSeverity
+                            message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage
                         )
                         
                         print(RFCMessage)

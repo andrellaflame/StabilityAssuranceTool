@@ -10,7 +10,7 @@ import Foundation
 struct SATConfiguration: Codable {
     let output: String
     let enabledMetrics: [String]?
-    let metricConfiguration: [String: MetricConfiguration]?
+    let configuration: [String: MetricConfiguration]?
 }
 
 struct MetricConfiguration: Codable {
