@@ -51,6 +51,25 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             return .poor
         }
         
+        /// Handles metrics severity response
+        private func handleMetricEvaluation(
+            classInstance: ClassInfo,
+            message: String,
+            severity: MetricSeverity?
+        ) {
+            let formattedMessage = SATReportWriter.formatIssueMessage(
+                classInstance,
+                message: message,
+                severity: severity ?? .warning
+            )
+            
+            if severity == .error {
+                fatalError(formattedMessage)
+            } else {
+                print(formattedMessage)
+            }
+        }
+        
         /// Evaluates overall stability of the product at passed data and path
         /// - Parameter path: `String` filePath value for the product
         /// - Parameter data: `ClassInfo` array containing gathered information about each class of the directory
@@ -121,9 +140,9 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let NOCThresholds = configuration["NOC"]?.thresholds ?? Thresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
             
             /// Thresholds for each metric
-//            let WMCSeverity = configuration["WMC"]?.severity
-//            let RFCSeverity = configuration["RFC"]?.severity
-//            let NOCSeverity = configuration["NOC"]?.severity
+            let WMCSeverity = configuration["WMC"]?.severity
+            let RFCSeverity = configuration["RFC"]?.severity
+            let NOCSeverity = configuration["NOC"]?.severity
             
             for classInstance in evaluatedResult {
                 /// Evaluate NOC
@@ -140,31 +159,54 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 // Add editor messages for script-based execution
                 if case .file(_) = options.output {
                     // NOC Message
-                    if metricsToEvaluate.contains("NOC"), classInstance.NOC.1 == .accepted || classInstance.NOC.1 == .poor {
-                        let NOCMessage = SATReportWriter.formatIssueMessage(
-                            classInstance,
-                            message: classInstance.NOC.1 == .accepted ? NOC.acceptedMessage : NOC.poorMessage
-                        )
-                        
-                        print(NOCMessage)
+                    if metricsToEvaluate.contains("NOC") {
+                        if classInstance.NOC.1 == .poor {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: NOC.poorMessage,
+                                severity: NOCSeverity?.poor
+                            )
+                        } else if classInstance.NOC.1 == .accepted {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: NOC.acceptedMessage,
+                                severity: NOCSeverity?.acceptable
+                            )
+                        }
                     }
+
                     // WMC Message
-                    if metricsToEvaluate.contains("WMC"), classInstance.WMC.1 == .accepted || classInstance.WMC.1 == .poor {
-                        let WMCMessage = SATReportWriter.formatIssueMessage(
-                            classInstance,
-                            message: classInstance.WMC.1 == .accepted ? WMC.acceptedMessage : WMC.poorMessage
-                        )
-                        
-                        print(WMCMessage)
+                    if metricsToEvaluate.contains("WMC") {
+                        if classInstance.WMC.1 == .poor {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: WMC.poorMessage,
+                                severity: WMCSeverity?.poor
+                            )
+                        } else if classInstance.WMC.1 == .accepted {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: WMC.acceptedMessage,
+                                severity: WMCSeverity?.acceptable
+                            )
+                        }
                     }
+
                     // RFC Message
-                    if metricsToEvaluate.contains("RFC"), classInstance.RFC.1 == .accepted || classInstance.RFC.1 == .poor {
-                        let RFCMessage = SATReportWriter.formatIssueMessage(
-                            classInstance,
-                            message: classInstance.RFC.1 == .accepted ? RFC.acceptedMessage : RFC.poorMessage
-                        )
-                        
-                        print(RFCMessage)
+                    if metricsToEvaluate.contains("RFC") {
+                        if classInstance.RFC.1 == .poor {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: RFC.poorMessage,
+                                severity: RFCSeverity?.poor
+                            )
+                        } else if classInstance.WMC.1 == .accepted {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: RFC.acceptedMessage,
+                                severity: RFCSeverity?.acceptable
+                            )
+                        }
                     }
                 }
             }
