@@ -10,10 +10,24 @@ import Foundation
 struct SATConfiguration: Codable {
     let output: String
     let enabledMetrics: [String]?
-    let thresholds: [String: MetricThresholds]?
+    let configuration: [String: MetricConfiguration]?
 }
 
-struct MetricThresholds: Codable {
+struct MetricConfiguration: Codable {
+    let thresholds: Thresholds?
+    let severity: Severity?
+}
+
+struct Thresholds: Codable {
     let good: Double
     let accepted: Double
+}
+
+struct Severity: Codable {
+    var poor: MetricSeverity
+    var acceptable: MetricSeverity
+}
+
+enum MetricSeverity: String, Codable {
+    case note, warning, error
 }
