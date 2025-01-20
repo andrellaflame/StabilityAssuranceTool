@@ -66,7 +66,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             print(formattedMessage)
             
             if severity == .error {
-                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit()
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity)
             }
         }
         
@@ -242,7 +242,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         /// Main `ParsableCommand` function for the command execution
         mutating func run() throws {
             guard let path = options.inputFile else {
-                throw StabilityAssuranceToolError.missingAttributeArgument("Input filepath")
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.missingAttributeArgument("Input filepath"))
             }
             
             /// Configurable options
@@ -256,7 +256,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                     enabledMetrics = satConfig.enabledMetrics ?? []
                     metricConfiguration = satConfig.configuration ?? [:]
                 } else {
-                    throw StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
+                    StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))"))
                 }
             }
             
