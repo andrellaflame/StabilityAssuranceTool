@@ -121,9 +121,9 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let NOCThresholds = configuration["NOC"]?.thresholds ?? Thresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
             
             /// Thresholds for each metric
-            let WMCSeverity = configuration["WMC"]?.severity
-            let RFCSeverity = configuration["RFC"]?.severity
-            let NOCSeverity = configuration["NOC"]?.severity
+//            let WMCSeverity = configuration["WMC"]?.severity
+//            let RFCSeverity = configuration["RFC"]?.severity
+//            let NOCSeverity = configuration["NOC"]?.severity
             
             for classInstance in evaluatedResult {
                 /// Evaluate NOC
@@ -209,10 +209,10 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             
             if let configurationPath = options.config {
                 print("Loading configuration from \(configurationPath) ...")
-                if let config = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
-                    options.output = OutputFormat(argument: config.output)
-                    enabledMetrics = config.enabledMetrics ?? []
-                    metricConfiguration = config.metricConfiguration ?? [:]
+                if let satConfig = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
+                    options.output = OutputFormat(argument: satConfig.output)
+                    enabledMetrics = satConfig.enabledMetrics ?? []
+                    metricConfiguration = satConfig.configuration ?? [:]
                 } else {
                     throw StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
                 }
