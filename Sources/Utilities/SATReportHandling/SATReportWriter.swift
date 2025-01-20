@@ -301,7 +301,23 @@ extension SATReportWriter {
     ///   - classInstance: Observed class instance.
     ///   - message: The message or recommendation for the class.
     /// - Returns: A formatted string representing the issue message.
-    static func formatIssueMessage(_ classInstance: ClassInfo, message: String) -> String {
-        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): warning: \(classInstance.declaration.name) class \(message)"
+    static func formatIssueMessage(
+        _ classInstance: ClassInfo,
+        message: String,
+        mark: SATMark,
+        severity: Severity?
+    ) -> String {
+        let severityLevel: MetricSeverity
+        switch mark {
+        case .poor:
+            severityLevel = severity?.poor ?? .warning
+        case .accepted:
+            severityLevel = severity?.acceptable ?? .warning
+        default:
+            severityLevel = .note
+        }
+        
+        return "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severityLevel.rawValue): \(classInstance.declaration.name) class \(message)"
     }
+
 }
