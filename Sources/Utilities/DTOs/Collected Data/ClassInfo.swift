@@ -25,6 +25,9 @@ class ClassInfo: DeclarationObservable {
     /// Number Of Children (NOC) metric value and its stability mark.
     var NOC: (Int, SATMark) = (0, .unowned)
     
+    /// Lack of Cohesion of Methods (LOCM) metric value and its stability mark.
+    var LOCM: (Int, SATMark) = (0, .unowned)
+    
     /// Initializes a new instance of `ClassInfo` with the given name.
     /// - Parameter name: The name of the class.
     init(_ declaration: Declaration) {
@@ -50,20 +53,21 @@ extension ClassInfo {
             xmlString += "  </classParents>\n"
         }
         
-        xmlString += "  <numberOfChildren>\(self.NOC)</numberOfChildren>\n"
+        xmlString += "  <WMC>\(self.WMC)</WMC>\n"
+        xmlString += "  <RFC>\(self.RFC)</RFC>\n"
+        xmlString += "  <NOC>\(self.NOC)</NOC>\n"
+        xmlString += "  <LOCM>\(self.LOCM)</LOCM>\n"
         
         for function in self.functions {
-            
-            let calledFunctions = function.calledFunctions
-            
+                        
             xmlString += "  <function>\n"
             xmlString += "      <name>\(function.declaration.name)</name>\n"
             xmlString += "      <signature>\(function.signature)</signature>\n"
             xmlString += "      <scope>\n\(function.scope)\n      </scope>\n"
-            xmlString += "      <functionCalls>\(function.functionCalls)</functionCalls>\n"
+            xmlString += "      <functionCalls>\(function.calledFunctions.count)</functionCalls>\n"
             xmlString += "      <functionsCalled>\n"
             
-            for calledFunction in calledFunctions {
+            for calledFunction in function.calledFunctions {
                 xmlString += "          <functionName>\(calledFunction)</functionName>\n"
             }
             

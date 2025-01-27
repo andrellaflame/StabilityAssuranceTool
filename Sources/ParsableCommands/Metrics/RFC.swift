@@ -7,8 +7,6 @@
 
 import ArgumentParser
 import Foundation
-import SwiftSyntax
-import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     
@@ -19,14 +17,23 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "rfc",
-            abstract: "A stability assurance tool command to evaluate `Response for Class` metric for Swift projects.",
+            abstract: "A stability assurance tool command to evaluate the `Response for Class` (RFC) metric for Swift projects.",
             discussion:
                 """
-                # Response for Class stability metric
-                
-                The response set of a class is a set of methods that can potentially be executed in response to a message received by an object of that class.
-                
-                RFC is simply the number of methods in the set.
+                # Response for Class (RFC) Stability Metric
+
+                The Response for Class (RFC) metric measures the stability of a class by evaluating the number of methods that can be potentially executed in response to a message sent to an object of that class.
+
+                ## Calculation:
+                - The response set of a class includes all methods directly defined in the class, as well as methods of other classes invoked by the methods of this class.
+                - RFC is simply the number of methods in this response set.
+
+                ## Interpretation:
+                - A **higher RFC** value indicates greater complexity and potential instability due to an increased number of methods involved.
+                - A **lower RFC** value suggests simplicity and potentially better maintainability.
+
+                ## Usage:
+                Use the RFC metric to identify classes that may require refactoring to reduce complexity and ensure they adhere to stability principles.
                 """
         )
         
@@ -51,7 +58,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 data.forEach { classInstance in
                     classInstance.RFC = (
                         classInstance.functions
-                            .reduce(0) { $0 + 1 + $1.functionCalls }
+                            .reduce(0) { $0 + 1 + $1.calledFunctions.count }
                         , .unowned
                     )
                 }

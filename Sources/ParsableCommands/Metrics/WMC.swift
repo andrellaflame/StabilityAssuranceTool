@@ -7,8 +7,6 @@
 
 import ArgumentParser
 import Foundation
-import SwiftSyntax
-import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     /// WMC | Weighted Method per Class stability metric
@@ -22,13 +20,19 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             abstract: "A stability assurance tool command to evaluate `Weighted Method per Class` metric for Swift projects.",
             discussion:
                 """
-                # Weighted Method per Class stability metric
-                
-                WMC is measures the sum of complexity of the methods in a class.
-                
+                # Weighted Method per Class (WMC) Stability Metric
+
+                The Weighted Method per Class (WMC) metric measures the sum of the complexities of the methods in a class, reflecting its overall complexity.
+
+                ## Calculation:
                 If all method complexities are considered to be unity, then WMC = n,the number of methods. Otherwise, it's (∑Ci) from i = 1 to n, where Ci is previously estimated complexity of the class i.
                 
-                The larger the value, the more complex and potentially incorrect the structure of the class.
+                ## Interpretation:
+                - A **higher WMC** value indicates greater complexity, which can make the class harder to understand, maintain, and test.
+                - A **lower WMC** value suggests simplicity and better maintainability.
+
+                ## Usage:
+                Use the WMC metric to evaluate the structural complexity of classes and identify candidates for refactoring to improve code quality and maintainability.
                 """
         )
         
@@ -74,7 +78,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                     data.forEach { classInstance in
                         classInstance.WMC = (
                             classInstance.functions
-                                .compactMap { $0.functionCalls }
+                                .compactMap { $0.calledFunctions.count }
                                 .reduce(0, +)
                             , .unowned
                         )

@@ -76,6 +76,7 @@ extension StabilityAssuranceTool {
                 RFC.self,
                 WMC.self,
                 NOC.self,
+                LOCM.self,
                 LinesCounter.self,
                 StabilityAssuranceCheck.self
             ],

@@ -7,8 +7,6 @@
 
 import ArgumentParser
 import Foundation
-import SwiftSyntax
-import SwiftParser
 
 extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     /// NOC | Number of Children stability metric
@@ -19,14 +17,22 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         // MARK: - Configuration
         static var configuration = CommandConfiguration(
             commandName: "noc",
-            abstract: "A stability assurance tool command to evaluate `Number of Children` metric for Swift projects.",
+            abstract: "A stability assurance tool command to evaluate the `Number of Children` (NOC) metric for Swift projects.",
             discussion:
                 """
-                # Number of Children stability metric
-                
-                NOC equals the number of immediate child classes derived from a base class. NOC measures the breadth of a class hierarchy, where maximum DIT measures the depth.
-                
-                High NOC has been found to indicate fewer faults. This may be due to high reuse, which is desirable.
+                # Number of Children (NOC) Stability Metric
+
+                The Number of Children (NOC) metric measures the breadth of a class hierarchy by counting the number of immediate subclasses derived from a base class.
+
+                ## Calculation:
+                - NOC is the count of all direct child classes that inherit from a specific base class.
+
+                ## Interpretation:
+                - A **higher NOC** value can indicate greater reuse and extensibility, which are desirable properties in object-oriented design.
+                - However, very high NOC might increase the testing burden due to the larger number of subclasses.
+
+                ## Usage:
+                Use the NOC metric to assess the design breadth of a class hierarchy and identify opportunities to optimize inheritance structure for better maintainability and stability.
                 """
         )
         

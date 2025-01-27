@@ -62,8 +62,7 @@ class CodeAnalyzer: SyntaxVisitor {
                 line: location.line
             ),
             signature: functionSignature,
-            scope: functionScope,
-            functionCalls: 0
+            scope: functionScope
         )
         
         currentClass.functions.append(functionInfo)
@@ -77,10 +76,22 @@ class CodeAnalyzer: SyntaxVisitor {
               let currentFunction = currentClass.functions.last else {
             return .skipChildren
         }
+        
         if let calledFunction = node.calledExpression.as(MemberAccessExprSyntax.self) {
-            currentFunction.functionCalls += 1
             currentFunction.calledFunctions.append(calledFunction.declName.baseName.text)
         }
+        
+        return .skipChildren
+    }
+    
+    override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
+        guard let currentClass = classStack.last,
+              let currentFunction = currentClass.functions.last else {
+            return .skipChildren
+        }
+        
+        let accessedVariable = node.declName.baseName.text
+        currentFunction.accessedVariables.append(accessedVariable)
         
         return .skipChildren
     }

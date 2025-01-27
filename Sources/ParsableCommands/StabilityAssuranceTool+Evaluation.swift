@@ -5,10 +5,8 @@
 //  Created by Andrii Sulimenko on 10.01.2024.
 //
 
-import ArgumentParser
 import Foundation
-import SwiftSyntax
-import SwiftParser
+import ArgumentParser
 #if canImport(AppKit)
 import AppKit
 #endif
@@ -45,7 +43,6 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             if value <= thresholds.good {
                 return .good
             } else if value <= thresholds.accepted {
-                
                 return .accepted
             }
             return .poor
@@ -83,7 +80,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             configuration: [String: MetricConfiguration]
         ) throws -> SATReportWriter {
             /// Default metrics if none are provided
-            let metricsToEvaluate = metrics.isEmpty ? ["WMC", "RFC", "NOC"] : metrics
+            let metricsToEvaluate = metrics.isEmpty ? ["WMC", "RFC", "NOC", "LOCM"] : metrics
             
             // MARK: Evaluating metrics based on provided/default configuration
             /// Evaluated metric results
@@ -100,6 +97,10 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             if metricsToEvaluate.contains("NOC") {
                 evaluatedResult = NOC().evaluateNOC(for: evaluatedResult.isEmpty ? data : evaluatedResult)
             }
+            /// LOCM metric calculation
+            if metricsToEvaluate.contains("LOCM") {
+                evaluatedResult = LOCM().evaluateLOCM(for: evaluatedResult.isEmpty ? data : evaluatedResult)
+            }
             
             /// Total WMC
             let averageWMC = calculateAverage(evaluatedResult.map { $0.WMC.0 })
@@ -108,6 +109,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let averageRFC = calculateAverage(evaluatedResult.map { $0.RFC.0 })
             /// Total NOC
             let averageNOC = calculateAverage(evaluatedResult.map { $0.NOC.0 })
+            /// Total LOCM
+            let averageLOCM = calculateAverage(evaluatedResult.map { $0.LOCM.0 })
             /// Total LOC
             let linesCount = LinesCounter().countLines(at: path).last?.0 ?? 0
             /// Project scale
@@ -131,18 +134,20 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             
             
             /// Evaluated metrics per class
-            var evaluatedMetrics: [(String, any Numeric, SATMark)] = []
-            evaluatedMetrics.append(("LOC", linesCount, .unowned))
+            var evaluatedMetrics: [(String, Double, SATMark)] = []
+            evaluatedMetrics.append(("LOC", Double(linesCount), .unowned))
             
             /// Thresholds for each metric
             let WMCThresholds = configuration["WMC"]?.thresholds ?? Thresholds(good: averageWMC, accepted: averageWMC * 1.1)
             let RFCThresholds = configuration["RFC"]?.thresholds ?? Thresholds(good: 50.0, accepted: 100.0)
             let NOCThresholds = configuration["NOC"]?.thresholds ?? Thresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
+            let LOCMThresholds = configuration["LOCM"]?.thresholds ?? Thresholds(good: 3.0, accepted: 9.0)
             
             /// Thresholds for each metric
             let WMCSeverity = configuration["WMC"]?.severity
             let RFCSeverity = configuration["RFC"]?.severity
             let NOCSeverity = configuration["NOC"]?.severity
+            let LOCMSeverity = configuration["LOCM"]?.severity
             
             for classInstance in evaluatedResult {
                 /// Evaluate NOC
@@ -151,6 +156,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 classInstance.WMC.1 = evaluateMetric(value: Double(classInstance.WMC.0), thresholds: WMCThresholds)
                 /// Evaluate RFC
                 classInstance.RFC.1 = evaluateMetric(value: Double(classInstance.RFC.0), thresholds: RFCThresholds)
+                /// Evaluate LOCM
+                classInstance.LOCM.1 = evaluateMetric(value: Double(classInstance.LOCM.0), thresholds: LOCMThresholds)
                 // Increment high WMC classes for overall mark
                 if classInstance.WMC.1 == .poor {
                     classesWithHighWMC += 1
@@ -174,7 +181,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                             )
                         }
                     }
-
+                    
                     // WMC Message
                     if metricsToEvaluate.contains("WMC") {
                         if classInstance.WMC.1 == .poor {
@@ -191,7 +198,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                             )
                         }
                     }
-
+                    
                     // RFC Message
                     if metricsToEvaluate.contains("RFC") {
                         if classInstance.RFC.1 == .poor {
@@ -200,11 +207,28 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                                 message: RFC.poorMessage,
                                 severity: RFCSeverity?.poor
                             )
-                        } else if classInstance.WMC.1 == .accepted {
+                        } else if classInstance.RFC.1 == .accepted {
                             handleMetricEvaluation(
                                 classInstance: classInstance,
                                 message: RFC.acceptedMessage,
                                 severity: RFCSeverity?.acceptable
+                            )
+                        }
+                    }
+                    
+                    // LOCM Message
+                    if metricsToEvaluate.contains("LOCM") {
+                        if classInstance.LOCM.1 == .poor {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: LOCM.poorMessage,
+                                severity: LOCMSeverity?.poor
+                            )
+                        } else if classInstance.LOCM.1 == .accepted {
+                            handleMetricEvaluation(
+                                classInstance: classInstance,
+                                message: LOCM.acceptedMessage,
+                                severity: LOCMSeverity?.acceptable
                             )
                         }
                     }
@@ -215,6 +239,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let WMCmark: SATMark = classesWithHighWMC <= Double(evaluatedResult.count) * 0.1 ? .good : classesWithHighWMC <= Double(evaluatedResult.count) * 0.3 ? .accepted : .poor
             let NOCmark: SATMark = averageNOC < allowedValueNOCPerClass ? .good : averageNOC < allowedValueNOCPerClass + allowedValueNOCPerClass * 0.1 ? .accepted : .poor
             let RFCmark: SATMark = averageRFC < 50 ? .good : averageRFC < 100 ? .accepted : .poor
+            let LOCMmark: SATMark = averageLOCM < 3 ? .good : averageLOCM < 9 ? .accepted : .poor
             
             // Appending metrics results
             if metricsToEvaluate.contains("WMC") {
@@ -225,6 +250,9 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             }
             if metricsToEvaluate.contains("RFC") {
                 evaluatedMetrics.append(("RFC", averageRFC, RFCmark))
+            }
+            if metricsToEvaluate.contains("LOCM") {
+                evaluatedMetrics.append(("LOCM", averageLOCM, LOCMmark))
             }
             
             print("Evaluation completed for: \(path)")
