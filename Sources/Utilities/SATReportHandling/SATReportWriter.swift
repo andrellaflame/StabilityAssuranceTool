@@ -14,47 +14,39 @@ struct SATReportWriter {
     /// The scale of the project (e.g., small, medium, large).
     let projectScale: ProjectSize
     /// Evaluated metrics for the project, including their values and marks.
-    let evaluatedMetrics: [(String, any Numeric, SATMark)]
+    let evaluatedMetrics: [(String, Double, SATMark)]
     /// Evaluated data for each class in the project.
     let evaluatedData: [ClassInfo]
     /// The output format for the report.
     let outputFormat: OutputFormat
     
     /// Generates the SAT report based on the provided data and format.
-    private func getMetricValue(for name: String) -> (value: Int, mark: SATMark) {
+    private func getMetricValue(for name: String) -> (value: Double, mark: SATMark) {
         return evaluatedMetrics
             .filter { $0.0 == name }
             .first
-            .map { (value: $0.1 as? Int ?? 0, mark: $0.2) } ?? (0, .unowned)
+            .map { (value: $0.1, mark: $0.2) } ?? (0, .unowned)
     }
     
     public var report: String {
+        
+        print("Evaluated Metrics: \(evaluatedMetrics)")
+        
+        
         let (valueWMC, markWMC) = getMetricValue(for: "WMC")
         let (valueRFC, markRFC) = getMetricValue(for: "RFC")
         let (valueNOC, markNOC) = getMetricValue(for: "NOC")
+        let (valueLOCM, markLOCM) = getMetricValue(for: "LOCM")
         let (valueLOC, _) = getMetricValue(for: "LOC")
         
-        var overallMark: (String, SATMark) = ("", .unowned)
-        
-        if markWMC == .good && markNOC == .good
-            || markWMC == .accepted && markRFC == .good && markNOC == .good
-            || markWMC == .good && markRFC == .good && markNOC == .accepted {
-            overallMark = ("Good", .good)
-        } else if markRFC == .good && markNOC == .good
-                    || markWMC == .good && markRFC == .poor && markNOC == .accepted
-                    || markWMC == .accepted && markRFC == .poor && markNOC == .good
-                    || markWMC == .accepted && markRFC == .poor && markNOC == .accepted
-                    || markWMC == .accepted && markRFC == .accepted && markNOC == .accepted {
-            overallMark = ("Accepted", .accepted)
-        } else {
-            overallMark = ("Poor", .poor)
-        }
+        let overallMark: (String, SATMark) = calculateOverallMark(wmcMark: markWMC, rfcMark: markRFC, nocMark: markNOC, locmMark: markLOCM)
         
         var detailedDescription: [ClassDescription] = []
         for classInstance in evaluatedData {
             let WMCResult = generateComment(metric: "WMC", metricValue: classInstance.WMC.0, mark: classInstance.WMC.1)
             let RFCResult = generateComment(metric: "RFC", metricValue: classInstance.RFC.0, mark: classInstance.RFC.1)
             let NOCResult = generateComment(metric: "NOC", metricValue: classInstance.NOC.0, mark: classInstance.NOC.1)
+            let LOCMResult = generateComment(metric: "LOCM", metricValue: classInstance.LOCM.0, mark: classInstance.LOCM.1)
             
             detailedDescription.append(
                 ClassDescription(
@@ -63,7 +55,8 @@ struct SATReportWriter {
                     line: classInstance.declaration.line,
                     WMCResult: WMCResult,
                     RFCResult: RFCResult,
-                    NOCResult: NOCResult
+                    NOCResult: NOCResult,
+                    LOCMResult: LOCMResult
                 )
             )
         }
@@ -74,11 +67,12 @@ struct SATReportWriter {
             system: "Swift",
             projectDirectory: self.projectDirectory,
             numberOfClasses: self.evaluatedData.count,
-            linesOfCode: valueLOC,
+            linesOfCode: Int(valueLOC),
             projectScale: self.projectScale.rawValue,
             WMC: Metric(value: valueWMC, mark: markWMC),
             RFC: Metric(value: valueRFC, mark: markRFC),
             NOC: Metric(value: valueNOC, mark: markNOC),
+            LOCM: Metric(value: valueLOCM, mark: markLOCM),
             overallMark: overallMark,
             note: comment,
             detailedDescription: detailedDescription
@@ -93,17 +87,22 @@ struct SATReportWriter {
     ///   - wmcMark: The WMC mark.
     ///   - rfcMark: The RFC mark.
     ///   - nocMark: The NOC mark.
+    ///   - locmMark: The LOCM mark.
     /// - Returns: A tuple containing the overall mark description and mark.
-    private func calculateOverallMark(wmcMark: SATMark, rfcMark: SATMark, nocMark: SATMark) -> (String, SATMark) {
-        if (wmcMark == .good && nocMark == .good)
-            || (wmcMark == .accepted && rfcMark == .good && nocMark == .good)
-            || (wmcMark == .good && rfcMark == .good && nocMark == .accepted) {
+    private func calculateOverallMark(wmcMark: SATMark, rfcMark: SATMark, nocMark: SATMark, locmMark: SATMark) -> (String, SATMark) {
+        /// Weighted scoring (could adjust weights as needed)
+        let wmcWeight = 0.3
+        let rfcWeight = 0.3
+        let nocWeight = 0.1
+        let locmWeight = 0.3
+        
+        /// Calculate the overall score
+        let overallScore = (wmcMark.score * wmcWeight) + (rfcMark.score * rfcWeight) + (nocMark.score * nocWeight) + (locmMark.score * locmWeight)
+        
+        /// Determine the mark based on the overall score
+        if overallScore >= 0.8 {
             return ("Good", .good)
-        } else if (rfcMark == .good && nocMark == .good)
-                    || (wmcMark == .good && rfcMark == .poor && nocMark == .accepted)
-                    || (wmcMark == .accepted && rfcMark == .poor && nocMark == .good)
-                    || (wmcMark == .accepted && rfcMark == .poor && nocMark == .accepted)
-                    || (wmcMark == .accepted && rfcMark == .accepted && nocMark == .accepted) {
+        } else if overallScore >= 0.5 {
             return ("Accepted", .accepted)
         } else {
             return ("Poor", .poor)
@@ -120,7 +119,8 @@ struct SATReportWriter {
                 line: classInstance.declaration.line,
                 WMCResult: generateComment(metric: "WMC", metricValue: classInstance.WMC.0, mark: classInstance.WMC.1),
                 RFCResult: generateComment(metric: "RFC", metricValue: classInstance.RFC.0, mark: classInstance.RFC.1),
-                NOCResult: generateComment(metric: "NOC", metricValue: classInstance.NOC.0, mark: classInstance.NOC.1)
+                NOCResult: generateComment(metric: "NOC", metricValue: classInstance.NOC.0, mark: classInstance.NOC.1),
+                LOCMResult: generateComment(metric: "LOCM", metricValue: classInstance.LOCM.0, mark: classInstance.LOCM.1)
             )
         }
     }
@@ -139,6 +139,8 @@ struct SATReportWriter {
             return "RFC mark: \(mark.rawValue) (value: \(metricValue))"
         case "NOC":
             return "NOC mark: \(mark.rawValue) (value: \(metricValue))"
+        case "LOCM":
+            return "LOCM mark: \(mark.rawValue) (value: \(metricValue))"
         default:
             switch mark {
             case .good:
@@ -189,6 +191,7 @@ struct SATReportWriter {
             \(classDescription.WMCResult)
             \(classDescription.RFCResult)
             \(classDescription.NOCResult)
+            \(classDescription.LOCMResult)
             """
         }.joined(separator: "\n")
         
@@ -211,6 +214,7 @@ struct SATReportWriter {
             WMC (`Weighted Method per Class`): \(data.WMC.value) - mark: \(data.WMC.mark)
             RFC (`Response for Class`): \(data.RFC.value) - mark: \(data.RFC.mark)
             NOC (`Number of Children`): \(data.NOC.value) - mark: \(data.NOC.mark)
+            LOCM (`Lack of Cohesion of Methods`): \(data.LOCM.value) - mark: \(data.LOCM.mark)
         
             Overall mark: \(data.overallMark.0)
         
