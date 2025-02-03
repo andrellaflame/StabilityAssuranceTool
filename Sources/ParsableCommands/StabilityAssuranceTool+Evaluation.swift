@@ -297,15 +297,15 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             } else {
                 visitorClasses = try StabilityAssuranceTool().readFile(at: path)
             }
-            
-            let report = try evaluateProduct(
+                    
+            let reportWriter = try evaluateProduct(
                 at: path,
                 for: visitorClasses,
                 metrics: enabledMetrics,
                 configuration: metricConfiguration
-            ).report
+            )
             
-            options.output.writeReport(report)
+            options.output.writeReport(reportWriter.report)
         }
     }
 }
