@@ -78,7 +78,7 @@ struct SATReportWriter {
         )
         
         if let appDelegateClassInstance = evaluatedData.first(where: { $0.declaration.name == "AppDelegate" }) {
-            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "Overall mark: \(overallMark.0)\n\n\(comment)", severity: .warning)
+            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "\nOverall mark: \(overallMark.0)\n\(comment)", severity: .warning)
             print(formattedMessage)
         }
         
