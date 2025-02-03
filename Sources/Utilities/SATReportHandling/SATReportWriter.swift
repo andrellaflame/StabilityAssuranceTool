@@ -78,7 +78,7 @@ struct SATReportWriter {
         )
         
         if let appDelegateClassInstance = evaluatedData.first(where: { $0.declaration.name == "AppDelegate" }) {
-            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "\nOverall mark: \(overallMark.0)\n\(comment)", severity: .warning)
+            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "Overall mark: \(overallMark.0)", severity: .warning)
             print(formattedMessage)
         }
         
@@ -314,6 +314,6 @@ extension SATReportWriter {
         message: String,
         severity: MetricSeverity
     ) -> String {
-        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severity.rawValue): \(classInstance.declaration.name) class \(message)"
+        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severity.rawValue): \(message)"
     }
 }
