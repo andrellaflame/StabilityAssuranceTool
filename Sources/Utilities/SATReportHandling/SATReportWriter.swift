@@ -32,7 +32,6 @@ struct SATReportWriter {
         
         print("Evaluated Metrics: \(evaluatedMetrics)")
         
-        
         let (valueWMC, markWMC) = getMetricValue(for: "WMC")
         let (valueRFC, markRFC) = getMetricValue(for: "RFC")
         let (valueNOC, markNOC) = getMetricValue(for: "NOC")
@@ -77,6 +76,11 @@ struct SATReportWriter {
             note: comment,
             detailedDescription: detailedDescription
         )
+        
+        if let appDelegateClassInstance = evaluatedData.first(where: { $0.declaration.name == "AppDelegate" }) {
+            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "Overall mark: \(overallMark.0)", severity: .warning)
+            print(formattedMessage)
+        }
         
         return generateReportContext(for: self.outputFormat, from: report)
     }
@@ -298,7 +302,7 @@ struct SATReportWriter {
     }
 }
 
-
+// MARK: - Editor-based output
 extension SATReportWriter {
     /// Generates a detailed message for a class evaluation issue that is disaplyed in the editor.
     /// - Parameters:
@@ -310,6 +314,6 @@ extension SATReportWriter {
         message: String,
         severity: MetricSeverity
     ) -> String {
-        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severity.rawValue): \(classInstance.declaration.name) class \(message)"
+        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severity.rawValue): \(message)"
     }
 }
