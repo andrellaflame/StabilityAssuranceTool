@@ -316,7 +316,7 @@ extension SATReportWriter {
         message: String,
         severity: MetricSeverity
     ) -> String {
-        let location = classInstance.map { "\($0.declaration.filePath): \($0.declaration.line): " } ?? ""
+        let location = classInstance.map { "\($0.declaration.filePath):\($0.declaration.line): " } ?? ""
         return "\(location)\(severity.rawValue): \(message)"
     }
 }
