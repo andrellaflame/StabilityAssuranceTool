@@ -264,7 +264,12 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             print("Evaluation completed for: \(path)")
             
             if let maxAllowedWarnings = configuration.maxAllowedWarnings, totalWarnings >= maxAllowedWarnings {
-                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity("Received evaluation result exceeded configured max allowed warnings limit"))
+                let message = "Received evaluation result exceeded configured max allowed warnings limit"
+                let formattedMessage = SATReportWriter.formatIssueMessage(message: message, severity: .error)
+                
+                print(formattedMessage)
+                
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity(message))
             }
             
             return SATReportWriter(
