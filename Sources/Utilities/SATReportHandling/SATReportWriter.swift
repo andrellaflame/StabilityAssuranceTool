@@ -77,10 +77,12 @@ struct SATReportWriter {
             detailedDescription: detailedDescription
         )
         
-        if let appDelegateClassInstance = evaluatedData.first(where: { $0.declaration.name == "AppDelegate" }) {
-            let formattedMessage = SATReportWriter.formatIssueMessage(appDelegateClassInstance, message: "Overall mark: \(overallMark.0)", severity: .warning)
-            print(formattedMessage)
-        }
+        let formattedMessage = SATReportWriter.formatIssueMessage(
+            message: "Overall mark: \(overallMark.0)",
+            severity: .warning
+        )
+        
+        print(formattedMessage)
         
         return generateReportContext(for: self.outputFormat, from: report)
     }
@@ -310,10 +312,11 @@ extension SATReportWriter {
     ///   - message: The message or recommendation for the class.
     /// - Returns: A formatted string representing the issue message.
     static func formatIssueMessage(
-        _ classInstance: ClassInfo,
+        _ classInstance: ClassInfo? = nil,
         message: String,
         severity: MetricSeverity
     ) -> String {
-        "\(classInstance.declaration.filePath):\(classInstance.declaration.line): \(severity.rawValue): \(message)"
+        let location = classInstance.map { "\($0.declaration.filePath):\($0.declaration.line): " } ?? ""
+        return "\(location)\(severity.rawValue): \(message)"
     }
 }

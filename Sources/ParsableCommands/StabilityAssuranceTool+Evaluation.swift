@@ -17,6 +17,8 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
     ///
     /// This mark is evaluated using results of all metrics counted together for the project in passed directory. It uses predefined tables of values for particular metrics.
     struct StabilityAssuranceCheck: ParsableCommand {
+        // MARK: - Stored Properties
+        private var totalWarnings: Int = 0
         
         // MARK: - Configuration
         static var configuration = CommandConfiguration(
@@ -49,7 +51,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         }
         
         /// Handles metrics severity response
-        private func handleMetricEvaluation(
+        private mutating func handleMetricEvaluation(
             classInstance: ClassInfo,
             message: String,
             severity: MetricSeverity?
@@ -62,8 +64,13 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             
             print(formattedMessage)
             
-            if severity == .error {
+            switch severity {
+            case .warning:
+                totalWarnings += 1
+            case .error: // Early exit
                 StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity)
+            default: // Empty case for switch exhaustiveness
+                break
             }
         }
         
@@ -73,14 +80,13 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
         /// - Parameter metrics: Enabled metrics for product evaluation. Defaults to all metrics use
         /// - Parameter thresholds: Custom thresholds for the enabled metrics in product evaluation. Defaults to predefined metrics logic
         /// - Returns: `SATReportWriter` object for stability evaluation report
-        private func evaluateProduct(
+        private mutating func evaluateProduct(
             at path: String,
             for data: [ClassInfo],
-            metrics: [String],
-            configuration: [String: MetricConfiguration]
+            configuration: SATConfiguration
         ) throws -> SATReportWriter {
             /// Default metrics if none are provided
-            let metricsToEvaluate = metrics.isEmpty ? ["WMC", "RFC", "NOC", "LOCM"] : metrics
+            let metricsToEvaluate = configuration.enabledMetrics.isEmpty ? ["WMC", "RFC", "NOC", "LOCM"] : configuration.enabledMetrics
             
             // MARK: Evaluating metrics based on provided/default configuration
             /// Evaluated metric results
@@ -138,16 +144,16 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             evaluatedMetrics.append(("LOC", Double(linesCount), .unowned))
             
             /// Thresholds for each metric
-            let WMCThresholds = configuration["WMC"]?.thresholds ?? Thresholds(good: averageWMC, accepted: averageWMC * 1.1)
-            let RFCThresholds = configuration["RFC"]?.thresholds ?? Thresholds(good: 50.0, accepted: 100.0)
-            let NOCThresholds = configuration["NOC"]?.thresholds ?? Thresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
-            let LOCMThresholds = configuration["LOCM"]?.thresholds ?? Thresholds(good: 3.0, accepted: 9.0)
+            let WMCThresholds = configuration.metricsConfiguration["WMC"]?.thresholds ?? Thresholds(good: averageWMC, accepted: averageWMC * 1.1)
+            let RFCThresholds = configuration.metricsConfiguration["RFC"]?.thresholds ?? Thresholds(good: 50.0, accepted: 100.0)
+            let NOCThresholds = configuration.metricsConfiguration["NOC"]?.thresholds ?? Thresholds(good: allowedValueNOCPerClass, accepted: allowedValueNOCPerClass * 1.1)
+            let LOCMThresholds = configuration.metricsConfiguration["LOCM"]?.thresholds ?? Thresholds(good: 3.0, accepted: 9.0)
             
             /// Thresholds for each metric
-            let WMCSeverity = configuration["WMC"]?.severity
-            let RFCSeverity = configuration["RFC"]?.severity
-            let NOCSeverity = configuration["NOC"]?.severity
-            let LOCMSeverity = configuration["LOCM"]?.severity
+            let WMCSeverity = configuration.metricsConfiguration["WMC"]?.severity
+            let RFCSeverity = configuration.metricsConfiguration["RFC"]?.severity
+            let NOCSeverity = configuration.metricsConfiguration["NOC"]?.severity
+            let LOCMSeverity = configuration.metricsConfiguration["LOCM"]?.severity
             
             for classInstance in evaluatedResult {
                 /// Evaluate NOC
@@ -257,6 +263,15 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             
             print("Evaluation completed for: \(path)")
             
+            if let maxAllowedWarnings = configuration.maxAllowedWarnings, totalWarnings >= maxAllowedWarnings {
+                let message = "Received evaluation result exceeded configured max allowed warnings limit"
+                let formattedMessage = SATReportWriter.formatIssueMessage(message: message, severity: .error)
+                
+                print(formattedMessage)
+                
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity)
+            }
+            
             return SATReportWriter(
                 projectDirectory: path,
                 projectScale: scale,
@@ -273,20 +288,22 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.missingAttributeArgument("Input filepath"))
             }
             
-            /// Configurable options
-            var enabledMetrics = [String]()
-            var metricConfiguration = [String: MetricConfiguration]()
-            
+            /// Load configuration if available, otherwise use default values
+            let configuration: SATConfiguration
             if let configurationPath = options.config {
                 print("Loading configuration from \(configurationPath) ...")
-                if let satConfig = StabilityAssuranceTool.loadConfiguration(from: configurationPath) {
-                    options.output = OutputFormat(argument: satConfig.output)
-                    enabledMetrics = satConfig.enabledMetrics ?? []
-                    metricConfiguration = satConfig.configuration ?? [:]
-                } else {
-                    StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))"))
+                guard let loadedConfiguration = StabilityAssuranceTool.loadConfiguration(from: configurationPath) else {
+                    StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(
+                        withError: StabilityAssuranceToolError.invalidConfiguration("Failed to load configuration file (\(configurationPath))")
+                    )
                 }
+                configuration = loadedConfiguration
+            } else {
+                configuration = SATConfiguration.default
             }
+            
+            /// Assign output configuration
+            options.output = OutputFormat(argument: configuration.output)
             
             print("Attempting to apply metrics to evaluate stability for: \(path) ...")
             
@@ -301,8 +318,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             let reportWriter = try evaluateProduct(
                 at: path,
                 for: visitorClasses,
-                metrics: enabledMetrics,
-                configuration: metricConfiguration
+                configuration: configuration
             )
             
             options.output.writeReport(reportWriter.report)
