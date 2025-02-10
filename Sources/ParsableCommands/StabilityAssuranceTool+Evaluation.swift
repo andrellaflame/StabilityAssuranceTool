@@ -68,7 +68,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
             case .warning:
                 totalWarnings += 1
             case .error: // Early exit
-                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity())
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity)
             default: // Empty case for switch exhaustiveness
                 break
             }
@@ -269,7 +269,7 @@ extension StabilityAssuranceTool.StabilityAssuranceEvaluationCommand {
                 
                 print(formattedMessage)
                 
-                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity(message))
+                StabilityAssuranceTool.StabilityAssuranceEvaluationCommand.StabilityAssuranceCheck.exit(withError: StabilityAssuranceToolError.metricSeverity)
             }
             
             return SATReportWriter(
