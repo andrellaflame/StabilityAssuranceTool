@@ -37,7 +37,7 @@ extension StabilityAssuranceToolError: LocalizedError {
                 message = "Received result exceeded configured metric severity"
             }
             
-            return NSLocalizedString("\(message).\(guidance).", comment: "Metric Severity Exceeded")
+            return NSLocalizedString("\n\(message). \(guidance).\n", comment: "Metric Severity Exceeded")
         }
     }
 }
