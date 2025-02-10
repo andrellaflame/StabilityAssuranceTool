@@ -9,8 +9,9 @@ import Foundation
 
 struct SATConfiguration: Codable {
     let output: String
-    let enabledMetrics: [String]?
-    let configuration: [String: MetricConfiguration]?
+    let enabledMetrics: [String]
+    let metricsConfiguration: [String: MetricConfiguration]
+    let maxAllowedWarnings: Int?
 }
 
 struct MetricConfiguration: Codable {
@@ -30,4 +31,15 @@ struct Severity: Codable {
 
 enum MetricSeverity: String, Codable {
     case note, warning, error
+}
+
+extension SATConfiguration {
+    static var `default`: SATConfiguration {
+        return SATConfiguration(
+            output: "console", 
+            enabledMetrics: [],
+            metricsConfiguration: [:],
+            maxAllowedWarnings: nil
+        )
+    }
 }

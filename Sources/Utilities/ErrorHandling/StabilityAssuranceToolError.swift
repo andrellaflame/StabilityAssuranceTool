@@ -12,7 +12,7 @@ enum StabilityAssuranceToolError: Error {
     case invalidFilepath(String)
     case invalidData(String)
     case invalidConfiguration(String)
-    case metricSeverity
+    case metricSeverity(String? = nil)
 }
 
 /// StabilityAssuranceToolError service errors localized description
@@ -27,8 +27,17 @@ extension StabilityAssuranceToolError: LocalizedError {
             return NSLocalizedString("Passed data for evaluation is missing or invalid. Details: \(details).", comment: "Invalid Evaluation Data")
         case .invalidConfiguration(let details):
             return NSLocalizedString("Passed configuration is invalid. Details: \(details).", comment: "Invalid Configuration Data")
-        case .metricSeverity:
-            return NSLocalizedString("Received result exceeded configured metric severity. Verify your configuration or adjust the source code.", comment: "Metric Severity Exceeded")
+        case .metricSeverity(let details):
+            let guidance: String = "Verify your configuration or adjust the source code"
+            let message: String
+            
+            if let details {
+                message = details
+            } else {
+                message = "Received result exceeded configured metric severity"
+            }
+            
+            return NSLocalizedString("\(message).\(guidance).", comment: "Metric Severity Exceeded")
         }
     }
 }
