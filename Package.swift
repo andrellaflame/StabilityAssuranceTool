@@ -6,10 +6,17 @@ import PackageDescription
 let package = Package(
     name: "StabilityAssuranceTool",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v13),
     ],
     products: [
-        .executable(name: "sat", targets: ["StabilityAssuranceTool"])
+        .executable(
+            name: "sat",
+            targets: ["StabilityAssuranceTool"]
+        ),
+        .plugin(
+            name: "SATCommandPlugin",
+            targets: ["SATCommandPlugin"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0"),
@@ -28,6 +35,21 @@ let package = Package(
             exclude: [
                 "Resources"
             ]
+        ),
+        .plugin(
+            name: "SATCommandPlugin",
+            capability: .command(
+                intent: .custom(verb: "sat", description: "Stability Assurance Tool"),
+                permissions: [
+                    .writeToPackageDirectory(
+                        reason: "When this command is run with the `--fix` option it may modify source files."
+                    ),
+                ]
+            ),
+            dependencies: [
+                .target(name: "StabilityAssuranceTool")
+            ],
+            packageAccess: false
         ),
     ]
 )
