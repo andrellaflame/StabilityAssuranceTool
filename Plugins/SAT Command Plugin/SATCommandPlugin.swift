@@ -30,10 +30,10 @@ extension SATCommandPlugin: XcodeCommandPlugin {
 
 extension SATCommandPlugin {
     private func performCommandWithinContext(context: some CommandContext, arguments: [String]) throws {
-        let command = arguments.first ?? "stats"
+        let command = arguments.first ?? "evaluate"
         
         switch command {
-        case "stats":
+        case "evaluate":
             Diagnostics.remark("Stability check was initiated.")
         case "countLines":
             Diagnostics.remark("Lines of Code Metric check was initiated.")
