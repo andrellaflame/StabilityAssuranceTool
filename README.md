@@ -32,6 +32,8 @@ Version 2.0.0 is a major overhaul focused on automation, flexibility, and deeper
 
 - **Configurable Quality Gates**: Define custom thresholds for each metric and specify whether a violation should be treated as a warning or a build-breaking error, perfect for CI/CD integration.
 
+<img src="./Sources/Resources/QualityGatesExample.png" alt="A diagram showing a quality gate" width="350">
+
 - **Immediate Feedback**: Integrates with Xcode's Build Phases to display analysis results as native warnings and errors, allowing developers to address issues without leaving the IDE.
 
 - **Command-Line Interface (CLI)**: Offers a command-line interface for manual analysis or integration with custom scripts.
@@ -130,11 +132,11 @@ $ swift run sat evaluate <path_to_your_project> --config <path_to_config_file>
 >
 > ```$ swift run sat test```
 
-[//]: # "[alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/testCommandExample.jpg?raw=true)"
+![plot](./Sources/Resources/TestCommandExample.jpg)
 
 > ```$ swift run sat evaluate "file_path"```
 
-[//]: # "![alt text](https://github.com/andrellaflame/StabilityAssuranceTool/blob/main/Resources/evaluateCommandExample.jpg?raw=true)"
+![plot](./Sources/Resources/EvaluateCommandExample.jpg)
 
 ## Documentation
 
