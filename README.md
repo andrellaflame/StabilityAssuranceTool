@@ -32,7 +32,7 @@ Version 2.0.0 is a major overhaul focused on automation, flexibility, and deeper
 
 - **Configurable Quality Gates**: Define custom thresholds for each metric and specify whether a violation should be treated as a warning or a build-breaking error, perfect for CI/CD integration.
 
-<img src="./Sources/Resources/QualityGatesExample.png" alt="A diagram showing a quality gate" width="350">
+<img src="./Sources/Resources/QualityGatesExample.png" alt="A diagram showing a quality gate" width="500">
 
 - **Immediate Feedback**: Integrates with Xcode's Build Phases to display analysis results as native warnings and errors, allowing developers to address issues without leaving the IDE.
 
@@ -132,11 +132,11 @@ $ swift run sat evaluate <path_to_your_project> --config <path_to_config_file>
 >
 > ```$ swift run sat test```
 
-![plot](./Sources/Resources/TestCommandExample.jpg)
+<img src="./Sources/Resources/TestCommandExample.jpg" alt="Test command execution result" width="350">
 
 > ```$ swift run sat evaluate "file_path"```
 
-![plot](./Sources/Resources/EvaluateCommandExample.jpg)
+<img src="./Sources/Resources/EvaluateCommandExample.jpg" alt="Evaluate command execution result" width="350">
 
 ## Documentation
 
