@@ -1,6 +1,7 @@
 # StabilityAssuranceTool
 
-![Swift Version](https://img.shields.io/badge/Swift-4.2-orange.svg) ![Static Badge](https://img.shields.io/badge/@copyright-NaUKMA-blue)
+![Swift Version](https://img.shields.io/badge/Swift-4.2-orange.svg)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ![GitHub watchers](https://img.shields.io/github/watchers/andrellaflame/StabilityAssuranceTool)
 
@@ -59,11 +60,19 @@ dependencies: [
 > Note: 
 > To open `Developer Documentation`
 ```
-shift + command + o
+Shift + Command (⌘) + O
 ``` 
 
 ## License
 
-All rights for this software belong to `National University of Kyiv-Mohyla Academy` as it's part of the Bachelor's research project done by Andrii Sulimenko, 3rd year Software Engineering student
+This project is licensed under the [Apache License 2.0](./LICENSE). 
 
-> Author: Andrii Sulimenko
+### Intellectual Property Notice
+
+The algorithms and architecture used in this project are the original work of Andrii Sulimenko.
+
+Although not covered by a formal patent, any reuse, modification, or distribution of this work must include attribution.  
+
+Unauthorized patenting of this work or its derivatives is strictly prohibited.
+
+> © 2023 Andrii Sulimenko. 
